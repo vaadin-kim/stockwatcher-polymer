@@ -3,4 +3,4 @@ dist
 node_modules
 build
 bower_components 
-.idea 
+.idea/
