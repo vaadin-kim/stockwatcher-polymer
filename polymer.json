@@ -2,7 +2,7 @@
   "entrypoint": "index.html",
   "shell": "src/sw-app.html",
   "fragments": [
-    "src/sw-stocks.html",
+    "src/sw-quotes.html",
     "src/sw-portfolio.html"
   ]
 }
