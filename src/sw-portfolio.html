@@ -1,0 +1,26 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<dom-module id="sw-portfolio">
+
+    <!-- Defines the element's style and local DOM -->
+    <template>
+        <style>
+            :host {
+                display: block;
+                padding: 16px;
+            }
+        </style>
+        <h1>Portfolio</h1>
+    </template>
+
+    <!-- Creates the element's prototype and registers it -->
+    <script>
+        Polymer({
+            is: 'sw-portfolio',
+            properties: {
+                route: Object
+            }
+        });
+    </script>
+
+</dom-module>
