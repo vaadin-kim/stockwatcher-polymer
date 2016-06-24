@@ -18,6 +18,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             #stocks {
                 height: 100%;
             }
+
+            vaadin-grid /deep/ .positive-change {
+                color: darkgreen;
+            }
+
+            vaadin-grid /deep/ .negative-change {
+                color: red;
+            }
         </style>
         <vaadin-grid id="stocks" items="{{stocks}}">
             <table>
@@ -52,6 +60,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     type: Array,
                     value: []
                 }
+            },
+
+            ready: function() {
+
+                this.$.stocks.cellClassGenerator = function(cell) {
+                    if (cell.index == 2) {
+                        var change = cell.row.data.change;
+                        if(parseFloat(change) >= 0) {
+                            return 'positive-change';
+                        } else {
+                            return 'negative-change';
+                        }
+                    }
+                };
             },
 
             _updateStockQuotes: function (changeRecord) {
