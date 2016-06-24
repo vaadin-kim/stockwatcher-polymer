@@ -13,16 +13,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/iron-localstorage/iron-localstorage.html">
 
 <dom-module id="sw-quotes">
-
     <template>
-
         <style>
-            :host {
-                display: block;
-                padding: 10px;
+            #stocks {
+                height: 100%;
             }
         </style>
-
         <vaadin-grid id="stocks" items="{{stocks}}">
             <table>
                 <colgroup>
