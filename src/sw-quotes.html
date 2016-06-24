@@ -58,39 +58,38 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 }
             },
 
-            request: function (resolve, reject) {
-                if (this.stocks.length == 0) {
-                    reject("No stocks in list");
-                    return;
-                }
-
-                var xhr = new XMLHttpRequest();
-                xhr.onreadystatechange = function (response) {
-                    if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-                        var json = response.target.responseText.trim();
-                        if (json.startsWith("//")) {
-                            json = json.substr(3).trim();
-                        }
-                        resolve(JSON.parse(json));
-                    }
-                };
-                xhr.onerror = function () {
-                    reject();
-                }
-
-                var url = "http://finance.google.com/finance/info?client=ig&q=";
-                for (var i = 0; i < this.stocks.length; i++) {
-                    url += this.stocks[i].stock + ",";
-                }
-                // remove last comma
-                url = url.substr(0, url.length - 1);
-                xhr.open('GET', url, true);
-                xhr.send();
-            },
-
             _updateStockQuotes: function (changeRecord) {
                 var _self = this;
-                this.request(
+                var loadStocks = new Promise(function (resolve, reject) {
+                    if (_self.stocks.length == 0) {
+                        reject("No stocks in list");
+                        return;
+                    }
+                    var xhr = new XMLHttpRequest();
+                    xhr.onreadystatechange = function (response) {
+                        if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                            var json = response.target.responseText.trim();
+                            if (json.startsWith("//")) {
+                                json = json.substr(3).trim();
+                            }
+                            resolve(JSON.parse(json));
+                        }
+                    };
+                    xhr.onerror = function () {
+                        reject();
+                    }
+
+                    var url = "http://finance.google.com/finance/info?client=ig&q=";
+                    for (var i = 0; i < _self.stocks.length; i++) {
+                        url += _self.stocks[i].stock + ",";
+                    }
+                    // remove last comma
+                    url = url.substr(0, url.length - 1);
+                    xhr.open('GET', url, true);
+                    xhr.send();
+                });
+
+                loadStocks.then(
                         function (json) {
                             var results = [];
                             for (var i = 0; i < json.length; i++) {
