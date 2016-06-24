@@ -1,138 +1,99 @@
-<!--
-@license
-Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
-<link rel="import" href="../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
-<link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
-<link rel="import" href="../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html">
-<link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
-<link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
-<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
-<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
-<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
-<link rel="import" href="my-icons.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tab.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="../bower_components/paper-styles/typography.html">
+<link rel="import" href="../bower_components/paper-styles/color.html">
+
+<link rel="import" href="../bower_components/iron-swipeable-pages/iron-swipeable-pages.html">
 
 <dom-module id="sw-app">
+    <template>
+        <style is="custom-style">
+            :host {
+                @apply(--layout-fullbleed);
+                @apply(--layout-vertical);
+            }
 
-  <template>
+            iron-swipeable-pages {
+                @apply(--layout-flex);
+            }
 
-    <style>
+            iron-swipeable-pages > * {
+                -webkit-user-select: none; /* Chrome all / Safari all */
+                -moz-user-select: none; /* Firefox all */
+                -ms-user-select: none; /* IE 10+ */
+                user-select: none; /* Likely future */
+                cursor: default;
+            }
+        </style>
 
-      :host {
-        display: block;
-        --app-primary-color: #4285f4;
-        --app-secondary-color: black;
-      }
+        <app-location route="{{route}}"></app-location>
+        <app-route
+                route="{{route}}"
+                pattern="/:page"
+                data="{{routeData}}"
+                tail="{{subroute}}"></app-route>
+        <paper-tabs selected="{{pageCount}}">
+            <paper-tab path="/quotes"><a name="quotes" href="/quotes">Quotes</a></paper-tab>
+            <paper-tab path="/portfolio"><a name="portfolio" href="/portfolio">Portfolio</a></paper-tab>
+        </paper-tabs>
+        <iron-swipeable-pages on-selected-changed="_onSelectedChanged" selected="{{pageCount}}" threshold="0.2"
+                              show-arrow>
+            <sw-quotes></sw-quotes>
+            <sw-portfolio></sw-portfolio>
+        </iron-swipeable-pages>
 
-      app-header {
-        background-color: var(--app-primary-color);
-        color: #fff;
-      }
-      app-header paper-icon-button {
-        --paper-icon-button-ink-color: white;
-      }
+    </template>
+    <script>
 
-      .drawer-list {
-        margin: 0 20px;
-      }
-      .drawer-list a {
-        display: block;
-        padding: 0 16px;
-        line-height: 40px;
-        text-decoration: none;
-        color: var(--app-secondary-color);
-      }
-      .drawer-list a.iron-selected {
-        color: black;
-        font-weight: bold;
-      }
-      .drawer-list a.subroute {
-        padding-left: 32px;
-      }
+        Polymer({
+            is: 'sw-app',
 
+            properties: {
+                page: {
+                    type: String,
+                    reflectToAttribute: true,
+                    observer: '_pageChanged'
+                },
 
-    </style>
+                pageCount: {
+                    type: Number,
+                    value: 0
+                }
+            },
 
-    <app-location route="{{route}}"></app-location>
-    <app-route
-        route="{{route}}"
-        pattern="/:page"
-        data="{{routeData}}"
-        tail="{{subroute}}"></app-route>
+            observers: [
+                '_routePageChanged(routeData.page)'
+            ],
 
-    <app-drawer-layout fullbleed>
+            _routePageChanged: function (page) {
+                this.page = page || 'quotes';
 
-      <!-- Drawer content -->
-      <app-drawer>
-        <app-toolbar>Menu</app-toolbar>
-        <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
-          <a name="quotes" href="/quotes">Quotes</a>
-          <a name="portfolio" href="/portfolio">Portfolio</a>
-        </iron-selector>
-      </app-drawer>
+                switch(this.page) {
+                    case 'quotes': this.pageNumber = 0; break;
+                    case 'portfolio': this.pageNumber = 1; break;
+                    default: this.pageNumber = 0;
+                }
+            },
 
-      <!-- Main content -->
-      <app-header-layout has-scrolling-region>
+            _onSelectedChanged: function(pageNumber) {
+                switch (pageNumber) {
+                    case 0: this.page = 'quotes'; break;
+                    case 1: this.page = 'portfolio'; break;
+                    default: this.page = 'quotes';
+                }
+            },
 
-        <app-header condenses reveals effects="waterfall">
-          <app-toolbar>
-            <paper-icon-button icon="menu" drawer-toggle></paper-icon-button>
-            <div title>Stock Watcher</div>
-          </app-toolbar>
-        </app-header>
+            _pageChanged: function (page) {
+                // load page import on demand.
+                this.importHref(
+                        this.resolveUrl('sw-' + page + '.html'), null, null, true);
+            }
 
-        <iron-pages role="main" selected="[[page]]" attr-for-selected="name">
-          <sw-quotes name="quotes"></sw-quotes>
-          <sw-portfolio name="portfolio"></sw-portfolio>
-        </iron-pages>
+        });
 
-      </app-header-layout>
-
-    </app-drawer-layout>
-
-  </template>
-
-  <script>
-
-    Polymer({
-
-      is: 'sw-app',
-
-      properties: {
-
-        page: {
-          type: String,
-          reflectToAttribute: true,
-          observer: '_pageChanged'
-        },
-
-      },
-
-      observers: [
-        '_routePageChanged(routeData.page)'
-      ],
-
-      _routePageChanged: function(page) {
-        this.page = page || 'stocks';
-      },
-
-      _pageChanged: function(page) {
-        // load page import on demand.
-        this.importHref(
-          this.resolveUrl('sw-' + page + '.html'), null, null, true);
-      }
-
-    });
-
-  </script>
-
+    </script>
 </dom-module>
