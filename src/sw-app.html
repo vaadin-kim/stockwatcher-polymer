@@ -30,6 +30,7 @@
                 background-color: #2f83d0;
                 color: #fff;
             }
+
             paper-tabs a {
                 color: white;
                 text-decoration: none;
@@ -46,6 +47,7 @@
             <paper-tab path="/quotes"><a name="quotes" href="/quotes">Quotes</a></paper-tab>
             <paper-tab path="/portfolio"><a name="portfolio" href="/portfolio">Portfolio</a></paper-tab>
         </paper-tabs>
+
         <iron-swipeable-pages on-selected-changed="_onSelectedChanged" selected="{{pageCount}}" threshold="0.2"
                               show-arrow>
             <sw-quotes></sw-quotes>
@@ -78,19 +80,31 @@
             _routePageChanged: function (page) {
                 this.page = page || 'quotes';
 
-                switch(this.page) {
-                    case 'quotes': this.pageNumber = 0; break;
-                    case 'portfolio': this.pageNumber = 1; break;
-                    default: this.pageNumber = 0;
+                switch (this.page) {
+                    case 'quotes':
+                        this.pageNumber = 0;
+                        break;
+                    case 'portfolio':
+                        this.pageNumber = 1;
+                        break;
+                    default:
+                        this.pageNumber = 0;
                 }
             },
 
-            _onSelectedChanged: function(pageNumber) {
-                switch (pageNumber) {
-                    case 0: this.page = 'quotes'; break;
-                    case 1: this.page = 'portfolio'; break;
-                    default: this.page = 'quotes';
+            _onSelectedChanged: function (newPage) {
+                switch (newPage.detail.value) {
+                    case 0:
+                        this.page = 'quotes';
+                        break;
+                    case 1:
+                        this.page = 'portfolio';
+                        break;
+                    default:
+                        this.page = 'quotes';
                 }
+
+                this.shadowRoot.querySelector('app-location').path = this.page;
             },
 
             _pageChanged: function (page) {
