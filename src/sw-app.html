@@ -43,12 +43,12 @@
                 pattern="/:page"
                 data="{{routeData}}"
                 tail="{{subroute}}"></app-route>
-        <paper-tabs selected="{{pageCount}}">
-            <paper-tab path="/quotes"><a name="quotes" href="/quotes">Quotes</a></paper-tab>
-            <paper-tab path="/portfolio"><a name="portfolio" href="/portfolio">Portfolio</a></paper-tab>
+        <paper-tabs selected="{{pageNumber}}">
+            <paper-tab><a name="quotes" href="/quotes">Quotes</a></paper-tab>
+            <paper-tab><a name="portfolio" href="/portfolio">Portfolio</a></paper-tab>
         </paper-tabs>
 
-        <iron-swipeable-pages on-selected-changed="_onSelectedChanged" selected="{{pageCount}}" threshold="0.2"
+        <iron-swipeable-pages on-selected-changed="_onSelectedChanged" selected="{{pageNumber}}" threshold="0.2"
                               show-arrow>
             <sw-quotes></sw-quotes>
             <sw-portfolio></sw-portfolio>
@@ -67,7 +67,7 @@
                     observer: '_pageChanged'
                 },
 
-                pageCount: {
+                pageNumber: {
                     type: Number,
                     value: 0
                 }
