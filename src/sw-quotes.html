@@ -15,6 +15,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="sw-add-stock-dialog.html">
 
 <dom-module id="sw-quotes">
     <template>
@@ -80,7 +81,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 <paper-button on-tap="_toggleList">
                     <iron-icon icon="vaadin-icons:lines-list"></iron-icon>
                 </paper-button>
-                <paper-fab icon="vaadin-icons:plus" mini id="addStock"></paper-fab>
+                <paper-fab icon="vaadin-icons:plus" mini id="addStock" on-tap="_addStock"></paper-fab>
                 <iron-collapse id="collapseRemoveButton">
                     <paper-fab icon="vaadin-icons:minus" mini id="removeStocks" on-tap="_removeStocks"></paper-fab>
                 </iron-collapse>
@@ -117,6 +118,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                         }
                     }
                 };
+            },
+
+            _addStock: function() {
+                var dialog = document.createElement('sw-add-stock-dialog');
+                dialog.setAttribute("id", "dialog");
+                Polymer.dom(this.root).appendChild(dialog);
             },
 
             _toggleList: function () {

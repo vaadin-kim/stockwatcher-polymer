@@ -1,0 +1,31 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+
+<dom-module id="sw-add-stock-dialog">
+
+    <!-- Defines the element's style and local DOM -->
+    <template>
+        <paper-dialog modal>
+            <h2>Header</h2>
+            <paper-dialog-scrollable>
+                Lorem ipsum...
+            </paper-dialog-scrollable>
+            <div class="buttons">
+                <paper-button dialog-dismiss>Cancel</paper-button>
+                <paper-button dialog-confirm>Accept</paper-button>
+            </div>
+        </paper-dialog>
+    </template>
+
+    <!-- Creates the element's prototype and registers it -->
+    <script>
+        Polymer({
+            is: 'sw-add-stock-dialog',
+            properties: {
+                route: Object
+            }
+        });
+    </script>
+
+</dom-module>
