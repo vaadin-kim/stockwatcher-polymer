@@ -6,12 +6,16 @@
 
 <link rel="import" href="../bower_components/iron-swipeable-pages/iron-swipeable-pages.html">
 
+<link href='https://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Oswald:300' rel='stylesheet' type='text/css'>
+
 <dom-module id="sw-app">
     <template>
         <style is="custom-style">
             :host {
                 @apply(--layout-fullbleed);
                 @apply(--layout-vertical);
+                background-color: #ffffff;
             }
 
             iron-swipeable-pages {
@@ -27,13 +31,23 @@
             }
 
             paper-tabs {
-                background-color: #2f83d0;
+                background-color: #403f44;
                 color: #fff;
+                font-family: 'Lato', sans-serif;
+                --paper-tabs-selection-bar-color: #008aff;
             }
 
-            paper-tabs a {
-                color: white;
-                text-decoration: none;
+            .header {
+                background-image: -webkit-radial-gradient(center center, ellipse contain, #2778bd 0%, #0a589b 100%);
+                background-image: -moz-radial-gradient(center center, ellipse contain, #2778bd 0%, #0a589b 100%);
+                background-image: -ms-radial-gradient(center center, ellipse contain, #2778bd 0%, #0a589b 100%);
+                background-image: -o-radial-gradient(center center, ellipse contain, #2778bd 0%, #0a589b 100%);
+                font: normal 20px 'Oswald', sans-serif;
+                padding: 10px 10px;
+                text-align: center;
+                color: #ffffff;
+                border-bottom: solid 1px #605f61;
+                text-shadow: 0px 0px 4px #5e5e5e;
             }
         </style>
 
@@ -43,9 +57,12 @@
                 pattern="/:page"
                 data="{{routeData}}"
                 tail="{{subroute}}"></app-route>
+        <div class="header">
+            Stock Watcher
+        </div>
         <paper-tabs selected="{{pageNumber}}">
-            <paper-tab><a name="quotes" href="/quotes">Quotes</a></paper-tab>
-            <paper-tab><a name="portfolio" href="/portfolio">Portfolio</a></paper-tab>
+            <paper-tab>Quotes</paper-tab>
+            <paper-tab>Portfolio</paper-tab>
         </paper-tabs>
 
         <iron-swipeable-pages on-selected-changed="_onSelectedChanged" selected="{{pageNumber}}" threshold="0.2"
