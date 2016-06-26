@@ -11,6 +11,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/vaadin-grid/vaadin-grid.html">
 <link rel="import" href="../bower_components/iron-localstorage/iron-localstorage.html">
+<link rel="import" href="../bower_components/vaadin-icons/vaadin-icons.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
 
 <dom-module id="sw-quotes">
     <template>
@@ -26,23 +29,59 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             vaadin-grid /deep/ .negative-change {
                 color: red;
             }
-        </style>
-        <vaadin-grid id="stocks" items="{{stocks}}">
-            <table>
-                <colgroup>
-                    <col name="stock">
-                    <col name="value">
-                    <col name="change">
-                </colgroup>
-                <tr>
-                    <th>Stock</th>
-                    <th>Value<br/>Cost</th>
-                    <th>Daily</th>
-                </tr>
-                </thead>
-            </table>
-        </vaadin-grid>
 
+            .container {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+            }
+
+            .container vaadin-grid {
+                flex-grow: 1;
+            }
+
+            .container .toolbar {
+                height: 40px;
+                padding: 10px;
+                align-self: flex-end;
+                width: 100%;
+            }
+
+            .container .toolbar paper-fab {
+                --paper-fab-background: #2778bd;
+                float: right;
+                margin-left: 10px;
+            }
+
+            .container .toolbar paper-button {
+                float: left;
+                color: #AAAAAA;
+            }
+        </style>
+
+        <div class="container">
+            <vaadin-grid id="stocks" items="{{stocks}}">
+                <table>
+                    <colgroup>
+                        <col name="stock">
+                        <col name="value">
+                        <col name="change">
+                    </colgroup>
+                    <tr>
+                        <th>Stock</th>
+                        <th>Value<br/>Cost</th>
+                        <th>Daily</th>
+                    </tr>
+                    </thead>
+                </table>
+            </vaadin-grid>
+            <div class="toolbar">
+                <paper-button>
+                    <iron-icon icon="vaadin-icons:lines-list"></iron-icon>
+                </paper-button>
+                <paper-fab icon="vaadin-icons:plus" mini></paper-fab>
+            </div>
+        </div>
         <iron-localstorage name="sw-stocks"
                            value="{{stocks}}"
                            on-iron-localstorage-load-empty="initializeDefaultStocks"
@@ -62,12 +101,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 }
             },
 
-            ready: function() {
+            ready: function () {
 
-                this.$.stocks.cellClassGenerator = function(cell) {
+                this.$.stocks.cellClassGenerator = function (cell) {
                     if (cell.index == 2) {
                         var change = cell.row.data.change;
-                        if(parseFloat(change) >= 0) {
+                        if (parseFloat(change) >= 0) {
                             return 'positive-change';
                         } else {
                             return 'negative-change';

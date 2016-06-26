@@ -18,7 +18,10 @@
     "polymer": "polymer/polymer#^1.4.0",
     "vaadin-grid": "^1.0.1",
     "iron-swipeable-pages": "^1.2.5",
-    "paper-tabs": "^1.6.2"
+    "paper-tabs": "^1.6.2",
+    "paper-fab": "^1.2.0",
+    "vaadin-icons": "^1.0.0",
+    "paper-button": "^1.0.12"
   },
   "devDependencies": {
     "web-component-tester": "^4.0.0"
