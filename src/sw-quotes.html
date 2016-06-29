@@ -206,8 +206,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                         reject();
                     }
 
-                    var url = "http://finance.google.com/finance/info?client=ig&q=";
-                    //var url = "http://localhost:8080/testdata.json?q=";
+                    var url = "https://finance.google.com/finance/info?client=ig&q=";
                     for (var i = 0; i < _self.stocks.length; i++) {
                         url += _self.stocks[i].stock + ",";
                     }
