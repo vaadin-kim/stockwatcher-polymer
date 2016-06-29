@@ -48,9 +48,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 align-self: flex-end;
                 width: 100%;
                 background-color: #eeeeee;
-                -webkit-box-shadow: 0px -4px 11px 0px rgba(221,221,221,1);
-                -moz-box-shadow: 0px -4px 11px 0px rgba(221,221,221,1);
-                box-shadow: 0px -4px 11px 0px rgba(221,221,221,1);
+                -webkit-box-shadow: 0px -4px 11px 0px rgba(221, 221, 221, 1);
+                -moz-box-shadow: 0px -4px 11px 0px rgba(221, 221, 221, 1);
+                box-shadow: 0px -4px 11px 0px rgba(221, 221, 221, 1);
                 z-index: 1000;
             }
 
@@ -67,7 +67,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </style>
 
         <div class="container">
-            <vaadin-grid id="stocks" items="{{stocks}}" selection-mode="single">
+            <vaadin-grid id="stocksGrid" items="{{stocks}}" selection-mode="single">
                 <table>
                     <colgroup>
                         <col name="stock">
@@ -86,7 +86,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 <paper-button on-tap="_toggleList">
                     <iron-icon icon="vaadin-icons:lines-list"></iron-icon>
                 </paper-button>
-                <paper-fab icon="vaadin-icons:plus" mini id="addStock" on-tap="_addStock"></paper-fab>
+                <paper-fab icon="vaadin-icons:plus" mini id="addStock" on-tap="_showAddStockDialog"></paper-fab>
                 <iron-collapse id="collapseRemoveButton">
                     <paper-fab icon="vaadin-icons:minus" mini id="removeStocks" on-tap="_removeStocks"></paper-fab>
                 </iron-collapse>
@@ -100,6 +100,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </template>
 
     <script>
+        var quotesView = undefined;
         Polymer({
 
             is: 'sw-quotes',
@@ -107,13 +108,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             properties: {
                 stocks: {
                     type: Array,
-                    value: []
+                    value: function () {
+                        return [];
+                    }
                 }
             },
 
             ready: function () {
+                quotesView = this;
 
-                this.$.stocks.cellClassGenerator = function (cell) {
+                this.$.stocksGrid.cellClassGenerator = function (cell) {
                     if (cell.columnName == 'change') {
                         var change = cell.row.data.change;
                         if (parseFloat(change) >= 0) {
@@ -125,26 +129,50 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 };
             },
 
-            _addStock: function() {
+            _showAddStockDialog: function () {
                 var dialog = document.createElement('sw-add-stock-dialog');
-                dialog.setAttribute("id", "dialog");
-                Polymer.dom(this.root).appendChild(dialog);
+                dialog.setAttribute("id", "add-stock-dialog");
+                dialog.addEventListener('symbol-added', this._symbolAdded);
+                dialog.addEventListener('dialog-cancelled', this._dialogCancelled);
+                document.querySelector("body").appendChild(dialog);
+            },
+
+            _symbolAdded: function (e) {
+                var symbol = e.detail.symbol;
+                var newStock = {stock: symbol, value: "N/A", change: "N/A"};
+                quotesView.push('stocks', newStock);
+
+                function compare(o1, o2) {
+                    if (o1.stock < o2.stock)
+                        return -1;
+                    if (o1.stock > o2.stock)
+                        return 1;
+                    return 0;
+                }
+                quotesView.stocks.sort(compare);
+
+                quotesView._updateStockQuotes();
+                document.querySelector("body").removeChild(document.getElementById("add-stock-dialog"));
+            },
+
+            _dialogCancelled: function () {
+                document.querySelector("body").removeChild(document.getElementById("add-stock-dialog"));
             },
 
             _toggleList: function () {
-                if (this.$.stocks.selection.mode == 'multi') {
-                    this.$.stocks.selection.mode = 'single';
+                if (this.$.stocksGrid.selection.mode == 'multi') {
+                    this.$.stocksGrid.selection.mode = 'single';
                     this.$.addStock.disabled = false;
                     this.$.collapseRemoveButton.opened = false;
-                } else if (this.$.stocks.selection.mode == 'single') {
-                    this.$.stocks.selection.mode = 'multi';
+                } else if (this.$.stocksGrid.selection.mode == 'single') {
+                    this.$.stocksGrid.selection.mode = 'multi';
                     this.$.addStock.disabled = true;
                     this.$.collapseRemoveButton.opened = true;
                 }
             },
 
             _removeStocks: function () {
-                var selection = this.$.stocks.selection.selected();
+                var selection = this.$.stocksGrid.selection.selected();
                 selection.sort();
                 for (var i = 0; i < selection.length; i++) {
                     // selection[i] contains the index we need to remove.
@@ -152,8 +180,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     var index = selection[i] - i;
                     this.splice('stocks', index, 1);
                 }
-                this.$.stocks.size = this.stocks.length;
-                this.$.stocks.refreshItems();
+                this.$.stocksGrid.size = this.stocks.length;
+                this.$.stocksGrid.refreshItems();
                 this._toggleList();
             },
 
@@ -179,6 +207,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     }
 
                     var url = "http://finance.google.com/finance/info?client=ig&q=";
+                    //var url = "http://localhost:8080/testdata.json?q=";
                     for (var i = 0; i < _self.stocks.length; i++) {
                         url += _self.stocks[i].stock + ",";
                     }
@@ -190,11 +219,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
                 loadStocks.then(
                         function (json) {
-                            var results = [];
                             for (var i = 0; i < json.length; i++) {
-                                results[i] = {"stock": json[i].t, "value": json[i].l, "change": json[i].c};
+                                _self.stocks[i].stock = json[i].t;
+                                _self.stocks[i].value = json[i].l;
+                                _self.stocks[i].change = json[i].c;
                             }
-                            _self.stocks = results;
+                            _self.$.stocksGrid.size = _self.stocks.length;
+                            _self.$.stocksGrid.refreshItems();
                         },
                         function (error) {
                             console.log(error);

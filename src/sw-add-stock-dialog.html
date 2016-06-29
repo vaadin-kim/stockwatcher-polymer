@@ -1,19 +1,30 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
 
 <dom-module id="sw-add-stock-dialog">
 
     <!-- Defines the element's style and local DOM -->
     <template>
-        <paper-dialog modal>
-            <h2>Header</h2>
+        <style>
+            paper-dialog {
+                min-width: 280px;
+                padding: 0px 30px;
+            }
+
+            paper-dialog /deep/ input {
+                text-transform: uppercase;
+            }
+        </style>
+        <paper-dialog opened modal id="dialog">
+            <h2>Enter stock symbol</h2>
             <paper-dialog-scrollable>
-                Lorem ipsum...
+                <paper-input label="E.g. AAPL or GOOGL" id="symbol" autocapitalize autofocus maxlength="12" minlength="1" pattern="[a-ZA-Z0-9]" required error-message="Invalid stock symbol"></paper-input>
             </paper-dialog-scrollable>
             <div class="buttons">
-                <paper-button dialog-dismiss>Cancel</paper-button>
-                <paper-button dialog-confirm>Accept</paper-button>
+                <paper-button on-tap="_cancelled">Cancel</paper-button>
+                <paper-button on-tap="_confirmed">Accept</paper-button>
             </div>
         </paper-dialog>
     </template>
@@ -22,8 +33,17 @@
     <script>
         Polymer({
             is: 'sw-add-stock-dialog',
-            properties: {
-                route: Object
+
+            _confirmed: function() {
+                if(this.$.symbol.validate()) {
+                    var symbol = this.$.symbol.value.toUpperCase();
+                    this.fire('symbol-added', {symbol: symbol});
+                    this.$.dialog.close();
+                }
+            },
+
+            _cancelled: function() {
+                this.fire('dialog-cancelled');
             }
         });
     </script>
