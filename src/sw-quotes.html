@@ -15,6 +15,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="sw-add-stock-dialog.html">
 
 <dom-module id="sw-quotes">
@@ -64,22 +65,30 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 float: left;
                 color: #AAAAAA;
             }
+
+            vaadin-grid /deep/ .stockdetails {
+                float: left;
+                clear: left;
+                font-size: 11px;
+            }
         </style>
 
         <div class="container">
             <vaadin-grid id="stocksGrid" items="{{stocks}}" selection-mode="single">
                 <table>
                     <colgroup>
-                        <col name="stock">
-                        <col name="value">
-                        <col name="change">
+                        <col name="symbol">
+                        <col name="value" min-width="100">
+                        <col name="change" min-width="70">
                     </colgroup>
+                    <thead>
                     <tr>
                         <th>Stock</th>
                         <th>Value<br/>Cost</th>
                         <th>Daily</th>
                     </tr>
                     </thead>
+                    <tbody></tbody>
                 </table>
             </vaadin-grid>
             <div class="toolbar">
@@ -95,8 +104,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <iron-localstorage name="sw-stocks"
                            value="{{stocks}}"
                            on-iron-localstorage-load-empty="initializeDefaultStocks"
-                           on-iron-localstorage-load="_updateStockQuotes"
+                           on-iron-localstorage-load="dataLoaded"
         ></iron-localstorage>
+
+        <iron-ajax
+                id="apiRequest"
+                url="https://jsonp.afeld.me/"
+                handle-as="json"
+                on-response="_updateStock"
+                debounce-duration="300"
+                verbose></iron-ajax>
     </template>
 
     <script>
@@ -139,16 +156,24 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
             _symbolAdded: function (e) {
                 var symbol = e.detail.symbol;
-                var newStock = {stock: symbol, value: "N/A", change: "N/A"};
+                var newStock = {
+                    symbol: symbol,
+                    name: "",
+                    value: "N/A",
+                    change: "N/A",
+                    changePercent: "N/A",
+                    lastUpdate: "N/A"
+                };
                 quotesView.push('stocks', newStock);
 
                 function compare(o1, o2) {
-                    if (o1.stock < o2.stock)
+                    if (o1.symbol < o2.symbol)
                         return -1;
-                    if (o1.stock > o2.stock)
+                    if (o1.symbol > o2.symbol)
                         return 1;
                     return 0;
                 }
+
                 quotesView.stocks.sort(compare);
 
                 quotesView._updateStockQuotes();
@@ -185,44 +210,45 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 this._toggleList();
             },
 
-            _updateStockQuotes: function (changeRecord) {
+            _updateStock: function (event) {
+                var response = event.detail.response;
+
+                function isName(element) {
+                    return response.Symbol == element.symbol.toUpperCase();
+                }
+
+                var element = this.stocks.find(isName);
+                element.symbol = response.Symbol;
+                element.name = response.Name;
+                element.value = response.LastPrice;
+                element.change = parseFloat(response.Change).toFixed(2);
+                element.changePercent = parseFloat(response.ChangePercent).toFixed(2);
+                element.lastUpdate = response.Timestamp;
+                quotesView.$.stocksGrid.size = quotesView.stocks.length;
+                quotesView.$.stocksGrid.refreshItems();
+            },
+
+            _updateStockQuotes: function () {
                 var _self = this;
                 var loadStocks = new Promise(function (resolve, reject) {
                     if (_self.stocks.length == 0) {
                         reject("No stocks in list");
                         return;
                     }
-                    var xhr = new XMLHttpRequest();
-                    xhr.onreadystatechange = function (response) {
-                        if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-                            var json = response.target.responseText.trim();
-                            if (json.startsWith("//")) {
-                                json = json.substr(3).trim();
-                            }
-                            resolve(JSON.parse(json));
-                        }
-                    };
-                    xhr.onerror = function () {
-                        reject();
-                    }
 
-                    var url = "https://finance.google.com/finance/info?client=ig&q=";
                     for (var i = 0; i < _self.stocks.length; i++) {
-                        url += _self.stocks[i].stock + ",";
+                        var xhr = _self.$.apiRequest;
+                        if (xhr != undefined) {
+                            xhr.params = {url: "http://dev.markitondemand.com/MODApis/Api/v2/Quote/json?symbol=" + _self.stocks[i].symbol};
+                            xhr.generateRequest();
+                        }
                     }
-                    // remove last comma
-                    url = url.substr(0, url.length - 1);
-                    xhr.open('GET', url, true);
-                    xhr.send();
+                    resolve();
+
                 });
 
                 loadStocks.then(
-                        function (json) {
-                            for (var i = 0; i < json.length; i++) {
-                                _self.stocks[i].stock = json[i].t;
-                                _self.stocks[i].value = json[i].l;
-                                _self.stocks[i].change = json[i].c;
-                            }
+                        function () {
                             _self.$.stocksGrid.size = _self.stocks.length;
                             _self.$.stocksGrid.refreshItems();
                         },
@@ -231,12 +257,48 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                         });
             },
 
+            dataLoaded: function() {
+                this._setRenderers();
+                this._updateStockQuotes();
+            },
+
+            _setRenderers: function() {
+                this.$.stocksGrid.columns[0].renderer = function (cell) {
+                    cell.element.innerHTML = "<div>" + cell.row.data.symbol + "<br /><span class='stockdetails'>" + cell.row.data.name + "</span></div>";
+                };
+                this.$.stocksGrid.columns[2].renderer = function (cell) {
+                    cell.element.innerHTML = cell.row.data.change + "<br />" + cell.row.data.changePercent + "%";
+                };
+            },
+
             // initializes default if nothing has been stored
             initializeDefaultStocks: function () {
+                this._setRenderers();
                 this.stocks = [
-                    {stock: "AAPL", value: "N/A", change: "N/A"},
-                    {stock: "GOOGL", value: "N/A", change: "N/A"},
-                    {stock: "TSLA", value: "N/A", change: "N/A"}
+                    {
+                        symbol: "AAPL",
+                        name: "Apple Inc",
+                        value: "N/A",
+                        change: "N/A",
+                        changePercent: "N/A",
+                        lastUpdate: "N/A"
+                    },
+                    {
+                        symbol: "GOOGL",
+                        name: "Alphabet Inc",
+                        value: "N/A",
+                        change: "N/A",
+                        changePercent: "N/A",
+                        lastUpdate: "N/A"
+                    },
+                    {
+                        symbol: "TSLA",
+                        name: "Tesla Motors Inc",
+                        value: "N/A",
+                        change: "N/A",
+                        changePercent: "N/A",
+                        lastUpdate: "N/A"
+                    }
                 ];
                 this._updateStockQuotes();
             }
