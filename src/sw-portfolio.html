@@ -45,6 +45,7 @@
                     font-weight: 200;
                     line-height: 1;
                 }
+
                 .percent {
                     font-size: 20px;
                 }
@@ -94,6 +95,7 @@
                     font-weight: 200;
                     line-height: 1;
                 }
+
                 .percent {
                     font-size: 15px;
                 }
@@ -144,6 +146,7 @@
                     font-weight: 200;
                     line-height: 1;
                 }
+
                 .percent {
                     font-size: 15px;
                 }
@@ -190,6 +193,7 @@
                     font-weight: 200;
                     line-height: 1;
                 }
+
                 .percent {
                     font-size: 10px;
                 }
@@ -322,7 +326,7 @@
             </div>
 
             <div class="gridContainer">
-                <vaadin-grid id="stocksGrid" items="{{portfolio}}" selection-mode="single">
+                <vaadin-grid id="portfolioGrid" items="{{portfolioStatus}}" selection-mode="single">
                     <table>
                         <colgroup>
                             <col name="symbol">
@@ -354,6 +358,19 @@
             </div>
         </div>
 
+        <iron-localstorage id="localStorage" name="sw-portfolio"
+                           value="{{portfolio}}"
+                           on-iron-localstorage-load-empty="_initializeDefaultPortfolio"
+                           on-iron-localstorage-load="_portfolioLoaded"
+        ></iron-localstorage>
+
+        <iron-ajax
+                id="historyDataRequest"
+                url="http://query.yahooapis.com/v1/public/yql"
+                handle-as="json"
+                on-response="_parseStockHistoryData"
+                debounce-duration="300"
+                verbose></iron-ajax>
     </template>
 
     <!-- Creates the element's prototype and registers it -->
@@ -361,13 +378,117 @@
         Polymer({
             is: 'sw-portfolio',
             properties: {
-                route: Object
+                route: Object,
+                portfolio: {
+                    type: Array,
+                    value: function () {
+                        return [];
+                    }
+                },
+                portfolioStatus: {
+                    type: Array,
+                    value: function () {
+                        return [];
+                    }
+                }
             },
 
             ready: function () {
                 var data = {showInLegend: false, data: [100.0, 101.5, 101.8, 103.9, 99.7, 95.9, 100.9, 102.6]};
                 this.$.historyChart.chart.addSeries(data);
                 this.$.historyChart.chart.reflow();
+            },
+
+            _parseStockHistoryData: function (event) {
+                console.log(event.detail.response);
+            },
+
+            _initializeDefaultPortfolio: function () {
+                var portfolio = {
+                    stocks: [
+                        {
+                            symbol: "AAPL",
+                            tradeHistory: [
+                                {
+                                    buy: true,
+                                    amount: 45,
+                                    price: 113.14,
+                                    date: '2015-08-04'
+                                },
+                                {
+                                    buy: false,
+                                    amount: 23,
+                                    price: 115.00,
+                                    date: '2015-09-14'
+                                },
+                                {
+                                    buy: true,
+                                    amount: 30,
+                                    price: 95.55,
+                                    date: '2016-06-22'
+                                }
+                            ]
+                        },
+                        {
+                            symbol: "MSFT",
+                            tradeHistory: [
+                                {
+                                    buy: true,
+                                    amount: 100,
+                                    price: 50.1,
+                                    date: '2016-05-05'
+                                }
+                            ]
+                        }
+                    ]
+
+                    ,
+
+                    performance: []
+                }
+
+                this.portfolio = portfolio;
+            },
+
+            _portfolioLoaded: function () {
+                var stocks = [];
+                for(var i=0; i < this.portfolio.stocks.length; i++) {
+                    var stock = this.portfolio.stocks[i];
+                    stocks.push(stock.symbol);
+                    var cost = 0.0;
+                    var amount = 0;
+                    for(var j=0; j < stock.tradeHistory.length; j++) {
+                        var trade = stock.tradeHistory[j];
+                        if(trade.buy) {
+                            amount += trade.amount;
+                            cost += trade.amount*trade.price;
+                        } else {
+                            amount -= trade.amount;
+                            /* TODO: this should be changed to use FIFO principle */
+                            cost -= trade.amount*trade.price;
+                        }
+                    }
+                    this.push('portfolioStatus', {symbol: stock.symbol, stocks: amount, cost: cost, lastPrice: undefined, changeToday: 0.0, changeTodayPercent: 0.0});
+                }
+
+                this.$.portfolioGrid.size = this.portfolioStatus.length;
+                this.$.portfolioGrid.refreshItems();
+            },
+
+            _loadHistoryData: function (stocks) {
+                var xhr = this.$.historyDataRequest;
+                if (xhr != undefined) {
+                    var today = new Date();
+                    xhr.params = {
+                        q: 'select * from yahoo.finance.historicaldata where symbol  IN ("AAPL", "MSFT") and startDate = "2015-07-02" and endDate = "2016-07-02"',
+                        format: 'json',
+                        diagnostics: 'false',
+                        env: 'store://datatables.org/alltableswithkeys',
+                        callback: ''
+
+                    };
+                    xhr.generateRequest();
+                }
             }
         });
     </script>
