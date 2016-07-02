@@ -24,6 +24,8 @@
                     flex-direction: column !important;
                     width: 25% !important;
                     height: 100%;
+                    border-right: solid 1px #d8d8d8;
+                    box-sizing: border-box;
                 }
 
                 #numeric-progress {
@@ -34,10 +36,17 @@
 
                 #progress-today, #progress-history {
                     height: 50%;
+                    border-bottom: solid 1px #d8d8d8;
+                    box-sizing: border-box;
                 }
 
+                .sum {
+                    font-size: 25px;
+                    font-weight: 200;
+                    line-height: 1;
+                }
                 .percent {
-                    font-size: 12px;
+                    font-size: 20px;
                 }
 
                 .gridContainer {
@@ -60,6 +69,8 @@
 
                 #progress-data {
                     height: 30% !important;
+                    border-bottom: solid 1px #d8d8d8;
+                    box-sizing: border-box;
                 }
 
                 #numeric-progress {
@@ -68,12 +79,23 @@
                     order: 2;
                 }
 
-                #progress-today, #progress-history {
+                #progress-today {
+                    height: 50%;
+                    border-bottom: solid 1px #d8d8d8;
+                    box-sizing: border-box;
+                }
+
+                #progress-history {
                     height: 50%;
                 }
 
+                .sum {
+                    font-size: 20px;
+                    font-weight: 200;
+                    line-height: 1;
+                }
                 .percent {
-                    font-size: 12px;
+                    font-size: 15px;
                 }
 
                 .gridContainer {
@@ -85,6 +107,8 @@
                     width: 75%;
                     height: 100%;
                     order: 1;
+                    border-right: solid 1px #d8d8d8;
+                    box-sizing: border-box;
                 }
             }
 
@@ -99,6 +123,8 @@
                     flex-direction: column !important;
                     width: 25% !important;
                     height: 100%;
+                    border-right: solid 1px #d8d8d8;
+                    box-sizing: border-box;
                 }
 
                 #numeric-progress {
@@ -109,10 +135,17 @@
                 #progress-today, #progress-history {
                     width: 100%;
                     height: 50%;
+                    border-bottom: solid 1px #d8d8d8;
+                    box-sizing: border-box;
                 }
 
+                .sum {
+                    font-size: 20px;
+                    font-weight: 200;
+                    line-height: 1;
+                }
                 .percent {
-                    font-size: 12px;
+                    font-size: 15px;
                 }
 
                 .gridContainer {
@@ -134,14 +167,31 @@
                     width: 100%;
                     display: flex;
                     flex-direction: row;
+                    border-bottom: solid 1px #d8d8d8;
+                    box-sizing: border-box;
                 }
 
-                #progress-today, #progress-history {
+                #progress-today {
                     width: 50%;
+                    border-right: solid 1px #d8d8d8;
+                    box-sizing: border-box;
+                    padding: 15px 0px 5px 0px;
                 }
 
-                .percent {
+                #progress-history {
+                    width: 50%;
+                    border-right: solid 1px #ffffff;
+                    box-sizing: border-box;
+                    padding: 15px 0px 5px 0px;
+                }
+
+                .sum {
                     font-size: 12px;
+                    font-weight: 200;
+                    line-height: 1;
+                }
+                .percent {
+                    font-size: 10px;
                 }
 
                 .gridContainer {
@@ -168,6 +218,7 @@
                 width: 100%;
                 display: flex;
                 flex-direction: row;
+                z-index: 101;
             }
 
             #progress-today span, #progress-history span {
@@ -178,9 +229,6 @@
             }
 
             #progress-today, #progress-history {
-                border-right: solid 1px #eeeeee;
-                border-bottom: solid 1px #dedede;
-                border-left: solid 1px #dedede;
                 font-size: 15px;
                 text-align: center;
                 position: relative;
@@ -210,15 +258,16 @@
             }
 
             .gridContainer .toolbar {
-                height: 40px;
-                padding: 10px;
+                height: 60px;
+                padding: 10px 10px 10px 0px;
                 align-self: flex-end;
                 width: 100%;
                 background-color: #eeeeee;
                 -webkit-box-shadow: 0px -4px 11px 0px rgba(221, 221, 221, 1);
                 -moz-box-shadow: 0px -4px 11px 0px rgba(221, 221, 221, 1);
                 box-shadow: 0px -4px 11px 0px rgba(221, 221, 221, 1);
-                z-index: 1000;
+                z-index: 100;
+                box-sizing: border-box;
             }
 
             .gridContainer .toolbar paper-fab {
