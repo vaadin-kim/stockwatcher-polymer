@@ -101,7 +101,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 </iron-collapse>
             </div>
         </div>
-        <iron-localstorage name="sw-stocks"
+        <iron-localstorage id="localStorage" name="sw-stocks"
                            value="{{stocks}}"
                            on-iron-localstorage-load-empty="initializeDefaultStocks"
                            on-iron-localstorage-load="dataLoaded"
@@ -220,12 +220,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 var element = this.stocks.find(isName);
                 element.symbol = response.Symbol;
                 element.name = response.Name;
-                element.value = response.LastPrice;
+                element.value = parseFloat(response.LastPrice).toFixed(2);
                 element.change = parseFloat(response.Change).toFixed(2);
                 element.changePercent = parseFloat(response.ChangePercent).toFixed(2);
                 element.lastUpdate = response.Timestamp;
                 quotesView.$.stocksGrid.size = quotesView.stocks.length;
                 quotesView.$.stocksGrid.refreshItems();
+                quotesView.$.localStorage.save();
             },
 
             _updateStockQuotes: function () {
