@@ -2,6 +2,11 @@
 <link rel="import" href="../bower_components/vaadin-grid/vaadin-grid.html">
 <link rel="import" href="../bower_components/iron-localstorage/iron-localstorage.html">
 <link rel="import" href="../bower_components/vaadin-charts/vaadin-line-chart.html">
+<link rel="import" href="../bower_components/vaadin-icons/vaadin-icons.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 
 <dom-module id="sw-portfolio">
 
@@ -10,7 +15,7 @@
         <style>
             /* Landscape tablet */
             @media (min-width: 1024px) {
-                .container {
+                .viewContainer {
                     flex-direction: row;
                     height: 100%;
                 }
@@ -35,11 +40,11 @@
                     font-size: 12px;
                 }
 
-                vaadin-grid {
+                .gridContainer {
                     width: 75%;
                 }
 
-                .vaadin-chart {
+                #historyChart {
                     width: 100%;
                     height: 30%;
                     order: 1;
@@ -48,7 +53,7 @@
 
             /* Portrait tablet */
             @media (max-width: 1023px) and (min-width: 760px) {
-                .container {
+                .viewContainer {
                     flex-direction: column;
                     height: 100%;
                 }
@@ -63,7 +68,6 @@
                     order: 2;
                 }
 
-
                 #progress-today, #progress-history {
                     height: 50%;
                 }
@@ -72,12 +76,12 @@
                     font-size: 12px;
                 }
 
-                vaadin-grid {
+                .gridContainer {
                     width: 100%;
                     height: 70%;
                 }
 
-                .vaadin-chart {
+                #historyChart {
                     width: 75%;
                     height: 100%;
                     order: 1;
@@ -86,7 +90,7 @@
 
             /* Landscape phone */
             @media (max-width: 760px) and (min-width: 431px) {
-                .container {
+                .viewContainer {
                     flex-direction: row;
                     height: 100%;
                 }
@@ -111,18 +115,18 @@
                     font-size: 12px;
                 }
 
-                vaadin-grid {
+                .gridContainer {
                     width: 75%;
                 }
 
-                .vaadin-chart {
+                #historyChart {
                     display: none;
                 }
             }
 
             /* Portrait phone */
-            @media (max-width:430px) {
-                .container {
+            @media (max-width: 430px) {
+                .viewContainer {
                     flex-direction: column;
                 }
 
@@ -140,11 +144,11 @@
                     font-size: 12px;
                 }
 
-                vaadin-grid {
+                .gridContainer {
                     width: 100%;
                 }
 
-                .vaadin-chart {
+                #historyChart {
                     display: none;
                 }
             }
@@ -153,7 +157,9 @@
                 color: #006400;
             }
 
-            .container {
+            .viewContainer {
+                height: 100%;
+                width: 100%;
                 display: flex;
                 flew-flow: row wrap;
             }
@@ -175,7 +181,6 @@
                 border-right: solid 1px #eeeeee;
                 border-bottom: solid 1px #dedede;
                 border-left: solid 1px #dedede;
-                padding: 5px 0px;
                 font-size: 15px;
                 text-align: center;
                 position: relative;
@@ -190,11 +195,45 @@
                 color: rgba(0, 0, 0, 0.54);
             }
 
-            .vaadin-chart {
+            #historyChart {
                 background-color: #eeeeee;
             }
+
+            .gridContainer {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+            }
+
+            .gridContainer vaadin-grid {
+                flex-grow: 1;
+            }
+
+            .gridContainer .toolbar {
+                height: 40px;
+                padding: 10px;
+                align-self: flex-end;
+                width: 100%;
+                background-color: #eeeeee;
+                -webkit-box-shadow: 0px -4px 11px 0px rgba(221, 221, 221, 1);
+                -moz-box-shadow: 0px -4px 11px 0px rgba(221, 221, 221, 1);
+                box-shadow: 0px -4px 11px 0px rgba(221, 221, 221, 1);
+                z-index: 1000;
+            }
+
+            .gridContainer .toolbar paper-fab {
+                --paper-fab-background: #2778bd;
+                float: right;
+                margin-left: 10px;
+            }
+
+            .gridContainer .toolbar paper-button {
+                float: left;
+                color: #AAAAAA;
+            }
+
         </style>
-        <div class="container">
+        <div class="viewContainer">
             <div id="progress-data">
                 <div id="numeric-progress">
                     <div id="progress-today" class="positive-progress">
@@ -208,26 +247,62 @@
                         <span class="percent">14.60%</span>
                     </div>
                 </div>
-                <div class="vaadin-chart">&nbsp;</div>
-
+                <vaadin-line-chart id="historyChart">
+                    <title>
+                        <style display="none"></style>
+                    </title>
+                    <exporting enabled="false"></exporting>
+                    <x-axis>
+                        <labels>
+                            <enabled>false</enabled>
+                        </labels>
+                    </x-axis>
+                    <y-axis>
+                        <title>
+                            <style display="none"></style>
+                        </title>
+                    </y-axis>
+                    <plot-options>
+                        <line>
+                            <marker>
+                                <enabled>false</enabled>
+                            </marker>
+                        </line>
+                    </plot-options>
+                </vaadin-line-chart>
             </div>
-            <vaadin-grid id="stocksGrid" items="{{portfolio}}" selection-mode="single">
-                <table>
-                    <colgroup>
-                        <col name="symbol">
-                        <col name="value" min-width="100">
-                        <col name="change" min-width="70">
-                    </colgroup>
-                    <thead>
-                    <tr>
-                        <th>Stock</th>
-                        <th>Value<br/>Cost</th>
-                        <th>Daily</th>
-                    </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </vaadin-grid>
+
+            <div class="gridContainer">
+                <vaadin-grid id="stocksGrid" items="{{portfolio}}" selection-mode="single">
+                    <table>
+                        <colgroup>
+                            <col name="symbol">
+                            <col name="value" min-width="100">
+                            <col name="changeToday" min-width="70">
+                            <col name="changeAllTime" min-width="70">
+                        </colgroup>
+                        <thead>
+                        <tr>
+                            <th>Stock</th>
+                            <th>Value<br/>Cost</th>
+                            <th>Today</th>
+                            <th>All Time</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </vaadin-grid>
+
+                <div class="toolbar">
+                    <paper-button on-tap="_toggleList">
+                        <iron-icon icon="vaadin-icons:lines-list"></iron-icon>
+                    </paper-button>
+                    <paper-fab icon="vaadin-icons:plus" mini id="addStock" on-tap="_showAddStockDialog"></paper-fab>
+                    <iron-collapse id="collapseRemoveButton">
+                        <paper-fab icon="vaadin-icons:minus" mini id="removeStocks" on-tap="_removeStocks"></paper-fab>
+                    </iron-collapse>
+                </div>
+            </div>
         </div>
 
     </template>
@@ -238,6 +313,12 @@
             is: 'sw-portfolio',
             properties: {
                 route: Object
+            },
+
+            ready: function () {
+                var data = {showInLegend: false, data: [100.0, 101.5, 101.8, 103.9, 99.7, 95.9, 100.9, 102.6]};
+                this.$.historyChart.chart.addSeries(data);
+                this.$.historyChart.chart.reflow();
             }
         });
     </script>
