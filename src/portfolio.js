@@ -82,10 +82,11 @@ Portfolio.prototype = {
 
     getHistoryPerformance: function () {
         var history = [];
-        for (var i = 0; i < this.performance.length; i++) {
+        // -1 to exclude today
+        for (var i = 0; i < this.performance.length-1; i++) {
             var value = this.performance[i].portfolio.value();
             var cost = this.performance[i].portfolio.cost();
-            var relative = (100 * value / cost).toFixed(3);
+            var relative = (100 * value / cost);
             history.push(relative);
         }
         return history;
