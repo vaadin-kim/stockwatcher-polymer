@@ -49,6 +49,31 @@
                 border-bottom: solid 1px #605f61;
                 text-shadow: 0px 0px 4px #5e5e5e;
             }
+
+            .container {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+            }
+
+            /* Landscape phone */
+            @media (max-height: 400px) {
+                .container {
+                    flex-direction: row !important;
+                    width: 100%;
+                }
+
+                .header {
+                    width: 25%;
+                    padding: 8px 10px !important;
+                    box-sizing: border-box;
+                    border-right: solid 1px #d8d8d8;
+                }
+
+                paper-tabs {
+                    width: 75%;
+                }
+            }
         </style>
 
         <app-location route="{{route}}"></app-location>
@@ -57,13 +82,15 @@
                 pattern="/:page"
                 data="{{routeData}}"
                 tail="{{subroute}}"></app-route>
-        <div class="header">
-            Stock Watcher
+        <div class="container">
+            <div class="header">
+                Stock Watcher
+            </div>
+            <paper-tabs selected="{{pageNumber}}">
+                <paper-tab>Quotes</paper-tab>
+                <paper-tab>Portfolio</paper-tab>
+            </paper-tabs>
         </div>
-        <paper-tabs selected="{{pageNumber}}">
-            <paper-tab>Quotes</paper-tab>
-            <paper-tab>Portfolio</paper-tab>
-        </paper-tabs>
 
         <iron-swipeable-pages on-selected-changed="_onSelectedChanged" selected="{{pageNumber}}" threshold="0.2"
                               show-arrow>
