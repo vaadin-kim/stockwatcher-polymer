@@ -26,7 +26,8 @@
     "paper-dialog": "^1.0.4",
     "paper-input": "PolymerElements/paper-input#^1.1.13",
     "iron-ajax": "PolymerElements/iron-ajax#^1.2.0",
-    "vaadin-charts": "3.1.0-rc1"
+    "vaadin-charts": "3.1.0-rc1",
+    "moment": "^2.13.0"
   },
   "devDependencies": {
     "web-component-tester": "^4.0.0"

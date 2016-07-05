@@ -8,6 +8,10 @@
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 
+<script src="../bower_components/moment/min/moment.min.js"></script>
+<script src="portfolio.js"></script>
+<script src="portfolioFIFO.js"></script>
+
 <dom-module id="sw-portfolio">
 
     <!-- Defines the element's style and local DOM -->
@@ -359,11 +363,10 @@
         </div>
 
         <iron-localstorage id="localStorage" name="sw-portfolio"
-                           value="{{portfolio}}"
+                           value="{{tradeHistory}}"
                            on-iron-localstorage-load-empty="_initializeDefaultPortfolio"
                            on-iron-localstorage-load="_portfolioLoaded"
         ></iron-localstorage>
-
         <iron-ajax
                 id="historyDataRequest"
                 url="http://query.yahooapis.com/v1/public/yql"
@@ -379,7 +382,7 @@
             is: 'sw-portfolio',
             properties: {
                 route: Object,
-                portfolio: {
+                tradeHistory: {
                     type: Array,
                     value: function () {
                         return [];
@@ -390,97 +393,84 @@
                     value: function () {
                         return [];
                     }
+                },
+                portfolio: {
+                    type: Object,
+                    value: new Portfolio()
                 }
             },
 
-            ready: function () {
-                var data = {showInLegend: false, data: [100.0, 101.5, 101.8, 103.9, 99.7, 95.9, 100.9, 102.6]};
+            _parseStockHistoryData: function (event) {
+                var results = event.detail.response.query.results.quote;
+                for (var i = 0; i < results.length; i++) {
+                    this.portfolio.setClosePrice(results[i].Symbol, parseFloat(results[i].Close), results[i].Date);
+                }
+                var data = {showInLegend: false, data: this.portfolio.getHistoryPerformance()};
+                console.log(data);
                 this.$.historyChart.chart.addSeries(data);
                 this.$.historyChart.chart.reflow();
             },
 
-            _parseStockHistoryData: function (event) {
-                console.log(event.detail.response);
-            },
-
             _initializeDefaultPortfolio: function () {
-                var portfolio = {
-                    stocks: [
-                        {
-                            symbol: "AAPL",
-                            tradeHistory: [
-                                {
-                                    buy: true,
-                                    amount: 45,
-                                    price: 113.14,
-                                    date: '2015-08-04'
-                                },
-                                {
-                                    buy: false,
-                                    amount: 23,
-                                    price: 115.00,
-                                    date: '2015-09-14'
-                                },
-                                {
-                                    buy: true,
-                                    amount: 30,
-                                    price: 95.55,
-                                    date: '2016-06-22'
-                                }
-                            ]
-                        },
-                        {
-                            symbol: "MSFT",
-                            tradeHistory: [
-                                {
-                                    buy: true,
-                                    amount: 100,
-                                    price: 50.1,
-                                    date: '2016-05-05'
-                                }
-                            ]
-                        }
-                    ]
-
-                    ,
-
-                    performance: []
-                }
-
-                this.portfolio = portfolio;
+                var tradeHistory = [
+                    {
+                        symbol: "AAPL",
+                        buy: true,
+                        amount: 45,
+                        price: 113.14,
+                        date: '2015-08-04'
+                    },
+                    {
+                        symbol: "AAPL",
+                        buy: false,
+                        amount: 23,
+                        price: 115.00,
+                        date: '2015-09-14'
+                    },
+                    {
+                        symbol: "MSFT",
+                        buy: true,
+                        amount: 100,
+                        price: 50.1,
+                        date: '2016-05-05'
+                    },
+                    {
+                        symbol: "AAPL",
+                        buy: true,
+                        amount: 30,
+                        price: 95.55,
+                        date: '2016-06-22'
+                    }
+                ];
+                this.tradeHistory = tradeHistory;
             },
 
             _portfolioLoaded: function () {
                 var stocks = [];
-                for(var i=0; i < this.portfolio.stocks.length; i++) {
-                    var stock = this.portfolio.stocks[i];
-                    stocks.push(stock.symbol);
-                    var cost = 0.0;
-                    var amount = 0;
-                    for(var j=0; j < stock.tradeHistory.length; j++) {
-                        var trade = stock.tradeHistory[j];
-                        if(trade.buy) {
-                            amount += trade.amount;
-                            cost += trade.amount*trade.price;
-                        } else {
-                            amount -= trade.amount;
-                            /* TODO: this should be changed to use FIFO principle */
-                            cost -= trade.amount*trade.price;
-                        }
+                for (var i = 0; i < this.tradeHistory.length; i++) {
+                    var trade = this.tradeHistory[i];
+                    stocks[trade.symbol] = true;
+                    if (trade.buy) {
+                        this.portfolio.buyStock(trade.symbol, trade.amount, trade.price, trade.date);
+                    } else {
+                        this.portfolio.sellStock(trade.symbol, trade.amount, trade.date);
                     }
-                    this.push('portfolioStatus', {symbol: stock.symbol, stocks: amount, cost: cost, lastPrice: undefined, changeToday: 0.0, changeTodayPercent: 0.0});
                 }
-
-                this.$.portfolioGrid.size = this.portfolioStatus.length;
-                this.$.portfolioGrid.refreshItems();
+                var keys = [];
+                for (var key in stocks) {
+                    keys.push(key);
+                }
+                this._loadHistoryData(keys);
             },
 
             _loadHistoryData: function (stocks) {
                 var xhr = this.$.historyDataRequest;
-                if (xhr != undefined) {
-                    var today = new Date();
+                if (xhr != undefined && stocks.length > 0) {
+                    var stockList = "\"" + stocks.join("\",\"") + "\"";
+                    var today = moment().format("YYYY-MM-DD");
+                    var lastMonth = moment().subtract(30, 'days').format("YYYY-MM-DD");
                     xhr.params = {
-                        q: 'select * from yahoo.finance.historicaldata where symbol  IN ("AAPL", "MSFT") and startDate = "2015-07-02" and endDate = "2016-07-02"',
+                        q: 'select * from yahoo.finance.historicaldata where symbol  IN (' + stockList + ') and startDate = "' + lastMonth + '" and endDate = "' + today + '"',
                         format: 'json',
                         diagnostics: 'false',
                         env: 'store://datatables.org/alltableswithkeys',
