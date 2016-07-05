@@ -421,7 +421,6 @@
                     this.portfolio.setClosePrice(result.symbol, result.close, result.date);
                 }
                 var data = {showInLegend: false, data: this.portfolio.getHistoryPerformance()};
-                console.log(data);
                 this.$.historyChart.chart.addSeries(data);
                 this.$.historyChart.chart.reflow();
             },
@@ -481,7 +480,6 @@
             _loadHistoryData: function (stocks, force) {
                 if (!force && this.portfolioData.stockPriceHistory.lastUpdate != undefined && moment().isSame(this.portfolioData.stockPriceHistory.lastUpdate, 'day')) {
                     this._loadPriceHistory();
-                    console.log("Stock price history loaded from cache");
                 } else {
                     var xhr = this.$.historyDataRequest;
                     if (xhr != undefined && stocks.length > 0) {
@@ -496,7 +494,6 @@
                             callback: ''
 
                         };
-                        console.log("Stock price history loaded from web service");
                         xhr.generateRequest();
                     }
                 }
