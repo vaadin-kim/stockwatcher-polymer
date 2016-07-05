@@ -296,13 +296,13 @@
                 <div id="numeric-progress">
                     <div id="progress-today" class="positive-progress">
                         <label>Today</label>
-                        <span class="sum">25.34</span>
-                        <span class="percent">1.34%</span>
+                        <span class="sum">{{changeTodaySum}}</span>
+                        <span class="percent">{{changeTodayPercent}}%</span>
                     </div>
                     <div id="progress-history" class="positive-progress">
                         <label>All time</label>
-                        <span class="sum">2535.54</span>
-                        <span class="percent">14.60%</span>
+                        <span class="sum">{{changeTotalSum}}</span>
+                        <span class="percent">{{changeTotalPercent}}%</span>
                     </div>
                 </div>
                 <vaadin-line-chart id="historyChart">
@@ -336,12 +336,8 @@
                         <colgroup>
                             <col name="symbol">
                             <col name="value" min-width="100">
-                            <col name="change" min-width="70">
-                            <col name="changePercent" min-width="70">
-                            <!--
                             <col name="changeToday" min-width="70">
                             <col name="changeAllTime" min-width="70">
-                            -->
                         </colgroup>
                         <thead>
                         <tr>
@@ -401,6 +397,22 @@
                 portfolio: {
                     type: Object,
                     value: new Portfolio()
+                },
+                changeTodaySum: {
+                    type: String,
+                    value: "N/A"
+                },
+                changeTodayPercent: {
+                    type: String,
+                    value: "N/A"
+                },
+                changeTotalSum: {
+                    type: String,
+                    value: "N/A"
+                },
+                changeTotalPercent: {
+                    type: String,
+                    value: "N/A"
                 }
             },
 
@@ -478,7 +490,18 @@
                 var keys = [];
                 for (var key in stocks) {
                     keys.push(key);
-                    this.portfolioStatus.push({symbol: key, name: undefined, price: 0, change: 0, changePercent: 0, amount: 0, cost: 0, value: 0});
+                    this.portfolioStatus.push({
+                        symbol: key,
+                        name: undefined,
+                        price: 0,
+                        change: 0,
+                        changePercent: 0,
+                        amount: 0,
+                        cost: 0,
+                        value: 0,
+                        allTimeChange: 0,
+                        allTimeChangePercent: 0
+                    });
                 }
                 this._loadHistoryData(keys, false);
             },
@@ -506,36 +529,81 @@
                 this.$.quoteRequest.requestQuotes(stocks);
             },
 
-            _handleQuoteResponse: function(event) {
+            _handleQuoteResponse: function (event) {
                 var quotes = event.detail.query.results.quote;
-                for(var i=0; i < quotes.length; i++){
+                var currentPortfolioStatus = this.portfolio.getPortfolio();
+
+                var changeToday = 0;
+                var changeTotal = 0;
+                var totalValue = 0;
+
+                for (var i = 0; i < quotes.length; i++) {
                     var quote = quotes[i];
                     var stock = this._findStock(quote.symbol);
                     stock.name = quote.Name;
                     stock.price = parseFloat(quote.LastTradePriceOnly).toFixed(2);
-                    stock.change = parseFloat(quote.Change).toFixed(2);
 
-                    var startPrice = parseFloat(quote.LastTradePriceOnly)+parseFloat(quote.Change);
-                    var percent = parseFloat(quote.LastTradePriceOnly)/startPrice;
-                    if(percent > 1) {
-                        percent = ((percent-1)*100).toFixed(2);
-                    } else {
-                        percent = ((1-percent)*(-100)).toFixed(2);
-                    }
+                    stock.amount = currentPortfolioStatus.amountOfStocks(quote.symbol);
+                    stock.change = (parseFloat(quote.Change) * stock.amount).toFixed(2);
+                    changeToday += (parseFloat(quote.Change) * stock.amount);
+
+                    var startPrice = parseFloat(quote.LastTradePriceOnly) + parseFloat(quote.Change);
+                    var percent = startPrice / parseFloat(quote.LastTradePriceOnly);
+                    percent = ((percent - 1) * 100).toFixed(2);
                     stock.changePercent = percent;
+
+                    var value = currentPortfolioStatus.amountOfStocks(quote.symbol) * parseFloat(quote.LastTradePriceOnly);
+                    stock.value = parseInt(value);
+                    totalValue += value;
+                    stock.cost = parseInt(currentPortfolioStatus.costForStock(quote.symbol));
+                    stock.allTimeChange = stock.value - stock.cost;
+                    changeTotal += stock.allTimeChange;
+
+                    var allTimePercent = stock.value / stock.cost;
+                    allTimePercent = ((allTimePercent - 1) * 100).toFixed(2);
+
+                    stock.allTimeChangePercent = allTimePercent;
                 }
 
+                var previousValue = portfolio.value();
+                this.changeTodaySum = changeToday.toFixed(2);
+                this.changeTotalSum = changeTotal.toFixed(2);
+
+                var percent = totalValue / previousValue;
+                percent = ((percent - 1) * 100).toFixed(2);
+                this.changeTodayPercent = percent;
+
+                percent = totalValue / portfolio.cost();
+                percent = ((percent - 1) * 100).toFixed(2);
+                this.changeTotalPercent = percent;
+
+                this._setRenderers();
                 this.$.portfolioGrid.size = this.portfolioStatus.length;
                 this.$.portfolioGrid.refreshItems();
             },
 
-            _findStock: function(symbol) {
-                for(var i=0; i < this.portfolioStatus.length; i++) {
-                    if(this.portfolioStatus[i].symbol == symbol) {
+            _findStock: function (symbol) {
+                for (var i = 0; i < this.portfolioStatus.length; i++) {
+                    if (this.portfolioStatus[i].symbol == symbol) {
                         return this.portfolioStatus[i];
                     }
                 }
                 return undefined;
+            },
+
+            _setRenderers: function () {
+                this.$.portfolioGrid.columns[0].renderer = function (cell) {
+                    cell.element.innerHTML = cell.row.data.symbol + "<br />" + cell.row.data.amount + " stocks";
+                };
+                this.$.portfolioGrid.columns[1].renderer = function (cell) {
+                    cell.element.innerHTML = cell.row.data.value + "<br />" + cell.row.data.cost;
+                };
+                this.$.portfolioGrid.columns[2].renderer = function (cell) {
+                    cell.element.innerHTML = cell.row.data.change + "<br />" + cell.row.data.changePercent + "%";
+                };
+                this.$.portfolioGrid.columns[3].renderer = function (cell) {
+                    cell.element.innerHTML = cell.row.data.allTimeChange + "<br />" + cell.row.data.allTimeChangePercent + "%";
+                };
             }
         });
     </script>

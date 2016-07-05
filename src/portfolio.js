@@ -6,7 +6,7 @@ var Portfolio = function () {
     var index = 0;
     for (var i = 0; i < 30; i++) {
         var date = moment().subtract(30 - i, 'days');
-        if (date.day() != 0 && date.day() != 6) {
+        if (date.day() != 0 && date.day() != 6 && !date.isSame(moment(), 'day')) {
             var formattedDate = date.format("YYYY-MM-DD");
             this.performance[index] = {date: formattedDate, portfolio: new PortfolioFIFO()};
             this.dateToIndexMap[formattedDate] = index;
@@ -83,13 +83,17 @@ Portfolio.prototype = {
     getHistoryPerformance: function () {
         var history = [];
         // -1 to exclude today
-        for (var i = 0; i < this.performance.length-1; i++) {
+        for (var i = 0; i < this.performance.length - 1; i++) {
             var value = this.performance[i].portfolio.value();
             var cost = this.performance[i].portfolio.cost();
             var relative = (100 * value / cost);
             history.push(relative);
         }
         return history;
+    },
+
+    getPortfolio: function () {
+        return this.performance[this.performance.length - 1].portfolio;
     },
 
     _adjustToWeekday: function (moment) {

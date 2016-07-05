@@ -53,6 +53,18 @@ PortfolioFIFO.prototype = {
         return cost;
     },
 
+    amountOfStocks: function (symbol) {
+        var data = this.fifo[symbol];
+        if (data == undefined) {
+            return 0;
+        }
+        var amount = 0;
+        for (var i = 0; i < data.length; i++) {
+            amount += data[i].amount;
+        }
+        return amount;
+    },
+
     value: function () {
         var value = 0;
         for (var key in this.fifo) {
