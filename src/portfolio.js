@@ -4,7 +4,7 @@ var Portfolio = function () {
     this.dateToIndexMap = [];
 
     var index = 0;
-    for (var i = 0; i < 30; i++) {
+    for (var i = 0; i <= 30; i++) {
         var date = moment().subtract(30 - i, 'days');
         if (date.day() != 0 && date.day() != 6) {
             var formattedDate = date.format("YYYY-MM-DD");
