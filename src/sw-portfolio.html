@@ -216,6 +216,10 @@
                 color: #006400;
             }
 
+            .negative-progress {
+                color: #ff0000;
+            }
+
             .viewContainer {
                 height: 100%;
                 width: 100%;
@@ -290,16 +294,23 @@
                 color: #AAAAAA;
             }
 
+            vaadin-grid /deep/ .positive-change {
+                color: #006400;
+            }
+
+            vaadin-grid /deep/ .negative-change {
+                color: #ff0000;
+            }
         </style>
         <div class="viewContainer">
             <div id="progress-data">
                 <div id="numeric-progress">
-                    <div id="progress-today" class="positive-progress">
+                    <div id="progress-today" class$="{{getClasses(changeTodaySum)}}">
                         <label>Today</label>
                         <span class="sum">{{changeTodaySum}}</span>
                         <span class="percent">{{changeTodayPercent}}%</span>
                     </div>
-                    <div id="progress-history" class="positive-progress">
+                    <div id="progress-history" class$="{{getClasses(changeTotalSum)}}">
                         <label>All time</label>
                         <span class="sum">{{changeTotalSum}}</span>
                         <span class="percent">{{changeTotalPercent}}%</span>
@@ -414,6 +425,26 @@
                     type: String,
                     value: "N/A"
                 }
+            },
+
+            ready: function () {
+                this.$.portfolioGrid.cellClassGenerator = function (cell) {
+                    if (cell.columnName == 'changeToday') {
+                        var change = cell.row.data.change;
+                        if (parseFloat(change) >= 0) {
+                            return 'positive-change';
+                        } else {
+                            return 'negative-change';
+                        }
+                    } else if (cell.columnName == 'changeAllTime') {
+                        var change = cell.row.data.allTimeChange;
+                        if (parseFloat(change) >= 0) {
+                            return 'positive-change';
+                        } else {
+                            return 'negative-change';
+                        }
+                    }
+                };
             },
 
             _parseStockHistoryData: function (event) {
@@ -545,11 +576,11 @@
 
                     stock.amount = currentPortfolioStatus.amountOfStocks(quote.symbol);
 
-                    if(closeTime.isSame(moment(), 'day')) {
+                    if (closeTime.isSame(moment(), 'day')) {
                         stock.change = (parseFloat(quote.change) * stock.amount).toFixed(2);
                         stock.changePercent = parseFloat(quote.chg_percent).toFixed(2);
                         changeToday += (parseFloat(quote.change) * stock.amount);
-                    } else{
+                    } else {
                         stock.change = "0.00";
                         stock.changePercent = "0.00";
                     }
@@ -618,6 +649,14 @@
                 }
                 this.$.historyChart.chart.addSeries(data);
                 this.$.historyChart.chart.reflow();
+            },
+
+            getClasses: function(sum) {
+                if(parseFloat(sum) >= 0) {
+                    return "positive-progress";
+                } else {
+                    return "negative-progress";
+                }
             }
 
         });
