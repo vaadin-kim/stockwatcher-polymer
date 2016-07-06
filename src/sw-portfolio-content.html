@@ -1,10 +1,111 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import" href="../bower_components/vaadin-date-picker/vaadin-date-picker.html">
+<link rel="import" href="../bower_components/iron-localstorage/iron-localstorage.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
 
-</body>
-</html>
+
+<dom-module id="sw-portfolio-content">
+    <template>
+        <style>
+            paper-dialog {
+                width: 90%;
+                height: 90%;
+            }
+
+            .form {
+                background-color: #0a589b;
+                display: flex;
+                margin: 0px !important;
+                padding: 28px !important;
+            }
+
+            .form > * {
+                color: #ffffff !important;
+                margin-right: 5px;
+            }
+
+            .form /deep/ input, .form /deep/ label {
+                color: #ffffff !important;
+            }
+
+            .form /deep/ iron-icon {
+                fill: #ffffff;
+            }
+
+            paper-dialog /deep/ paper-input /deep/ input {
+                text-transform: uppercase;
+            }
+
+            .container {
+                display: flex;
+                flex-direction: column;
+                margin: 0px !important;
+                padding: 0px !important;
+                height: 100%;
+            }
+
+            vaadin-grid {
+                height: 100%;
+            }
+        </style>
+        <paper-dialog opened modal id="dialog">
+            <div class="container">
+                <div class="form">
+                    <vaadin-date-picker label="Date"></vaadin-date-picker>
+                    <paper-input label="Symbol" maxlength="12" minlength="1" pattern="[a-ZA-Z0-9]" required
+                                 error-message="Invalid stock symbol"></paper-input>
+                    <paper-input label="Price" maxlength="6" minlength="1" pattern="[0-9.,]" required
+                                 error-message="Please enter a number"></paper-input>
+                    <paper-input label="Quantity" maxlength="6" minlength="1" pattern="[0-9]" required
+                                 error-message="Please enter a number"></paper-input>
+                    <paper-button raised>Add</paper-button>
+                </div>
+
+                <vaadin-grid id="portfolioGrid" items="{{tradeHistory}}" selection-mode="single">
+                    <table>
+                        <colgroup>
+                            <col name="date">
+                            <col name="symbol">
+                            <col name="price">
+                            <col name="amount">
+                        </colgroup>
+                        <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Stock</th>
+                            <th>Price</th>
+                            <th>Qty</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </vaadin-grid>
+                <div class="buttons">
+                    <paper-button on-tap="_close">Close</paper-button>
+                </div>
+            </div>
+        </paper-dialog>
+    </template>
+
+    <script>
+        Polymer({
+            is: 'sw-portfolio-content',
+            properties: {
+                tradeHistory: {
+                    type: Array,
+                    value: function () {
+                        []
+                    }
+                }
+            },
+
+            _close: function (event) {
+                this.fire('close', this);
+                event.stopPropagation();
+            }
+        });
+    </script>
+</dom-module>

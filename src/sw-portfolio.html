@@ -9,6 +9,7 @@
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="momentjs.html">
 <link rel="import" href="yahoo-finance.quote.html">
+<link rel="import" href="sw-portfolio-content.html">
 
 <script src="portfolio.js"></script>
 <script src="portfolioFIFO.js"></script>
@@ -367,7 +368,7 @@
                     <paper-button on-tap="_toggleList">
                         <iron-icon icon="vaadin-icons:lines-list"></iron-icon>
                     </paper-button>
-                    <paper-fab icon="vaadin-icons:plus" mini id="addStock" on-tap="_showAddStockDialog"></paper-fab>
+                    <paper-fab icon="vaadin-icons:plus" mini id="addStock" on-tap="_showPortfolioContentDialog"></paper-fab>
                     <iron-collapse id="collapseRemoveButton">
                         <paper-fab icon="vaadin-icons:minus" mini id="removeStocks" on-tap="_removeStocks"></paper-fab>
                     </iron-collapse>
@@ -658,7 +659,20 @@
                 } else {
                     return "negative-progress";
                 }
-            }
+            },
+
+            _showPortfolioContentDialog: function () {
+                var dialog = document.createElement('sw-portfolio-content');
+                dialog.tradeHistory = this.portfolioData.tradeHistory;
+                dialog.setAttribute("id", "portfolio-content-dialog");
+                dialog.addEventListener('close', this._dialogClosed);
+                document.querySelector("body").appendChild(dialog);
+            },
+
+            _dialogClosed: function (e) {
+                document.querySelector("body").removeChild(document.getElementById("portfolio-content-dialog"));
+            },
+
 
         });
     </script>
