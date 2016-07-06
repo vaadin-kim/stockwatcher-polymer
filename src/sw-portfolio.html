@@ -437,9 +437,7 @@
                     var result = this.portfolioData.stockPriceHistory.data[i];
                     this.portfolio.setClosePrice(result.symbol, result.close, result.date);
                 }
-                var data = {showInLegend: false, data: this.portfolio.getHistoryPerformance()};
-                this.$.historyChart.chart.addSeries(data);
-                this.$.historyChart.chart.reflow();
+                this._updateGraph();
             },
 
             _initializeDefaultPortfolio: function () {
@@ -530,7 +528,7 @@
             },
 
             _handleQuoteResponse: function (event) {
-                var quotes = event.detail.query.results.quote;
+                var quotes = event.detail.list.resources;
                 var currentPortfolioStatus = this.portfolio.getPortfolio();
 
                 var changeToday = 0;
@@ -538,21 +536,25 @@
                 var totalValue = 0;
 
                 for (var i = 0; i < quotes.length; i++) {
-                    var quote = quotes[i];
+                    var quote = quotes[i].resource.fields;
                     var stock = this._findStock(quote.symbol);
-                    stock.name = quote.Name;
-                    stock.price = parseFloat(quote.LastTradePriceOnly).toFixed(2);
+
+                    var closeTime = moment(quote.utctime);
+                    stock.name = quote.issuer_name;
+                    stock.price = parseFloat(quote.price).toFixed(2);
 
                     stock.amount = currentPortfolioStatus.amountOfStocks(quote.symbol);
-                    stock.change = (parseFloat(quote.Change) * stock.amount).toFixed(2);
-                    changeToday += (parseFloat(quote.Change) * stock.amount);
 
-                    var startPrice = parseFloat(quote.LastTradePriceOnly) + parseFloat(quote.Change);
-                    var percent = startPrice / parseFloat(quote.LastTradePriceOnly);
-                    percent = ((percent - 1) * 100).toFixed(2);
-                    stock.changePercent = percent;
+                    if(closeTime.isSame(moment(), 'day')) {
+                        stock.change = (parseFloat(quote.change) * stock.amount).toFixed(2);
+                        stock.changePercent = parseFloat(quote.chg_percent).toFixed(2);
+                        changeToday += (parseFloat(quote.change) * stock.amount);
+                    } else{
+                        stock.change = "0.00";
+                        stock.changePercent = "0.00";
+                    }
 
-                    var value = currentPortfolioStatus.amountOfStocks(quote.symbol) * parseFloat(quote.LastTradePriceOnly);
+                    var value = currentPortfolioStatus.amountOfStocks(quote.symbol) * parseFloat(quote.price);
                     stock.value = parseInt(value);
                     totalValue += value;
                     stock.cost = parseInt(currentPortfolioStatus.costForStock(quote.symbol));
@@ -563,9 +565,11 @@
                     allTimePercent = ((allTimePercent - 1) * 100).toFixed(2);
 
                     stock.allTimeChangePercent = allTimePercent;
+
+                    this.portfolio.setClosePrice(quote.symbol, parseFloat(quote.price), closeTime.format("YYYY-MM-DD"));
                 }
 
-                var previousValue = portfolio.value();
+                var previousValue = currentPortfolioStatus.value();
                 this.changeTodaySum = changeToday.toFixed(2);
                 this.changeTotalSum = changeTotal.toFixed(2);
 
@@ -573,11 +577,12 @@
                 percent = ((percent - 1) * 100).toFixed(2);
                 this.changeTodayPercent = percent;
 
-                percent = totalValue / portfolio.cost();
+                percent = totalValue / currentPortfolioStatus.cost();
                 percent = ((percent - 1) * 100).toFixed(2);
                 this.changeTotalPercent = percent;
 
                 this._setRenderers();
+                this._updateGraph();
                 this.$.portfolioGrid.size = this.portfolioStatus.length;
                 this.$.portfolioGrid.refreshItems();
             },
@@ -604,7 +609,17 @@
                 this.$.portfolioGrid.columns[3].renderer = function (cell) {
                     cell.element.innerHTML = cell.row.data.allTimeChange + "<br />" + cell.row.data.allTimeChangePercent + "%";
                 };
+            },
+
+            _updateGraph: function () {
+                var data = {showInLegend: false, data: this.portfolio.getHistoryPerformance(), color: '#0a589b'};
+                if (this.$.historyChart.chart.series.length > 0) {
+                    this.$.historyChart.chart.series[0].remove(true);
+                }
+                this.$.historyChart.chart.addSeries(data);
+                this.$.historyChart.chart.reflow();
             }
+
         });
     </script>
 

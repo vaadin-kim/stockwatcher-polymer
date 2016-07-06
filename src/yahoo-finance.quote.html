@@ -5,7 +5,7 @@
     <template>
         <iron-ajax
                 id="query"
-                url="http://query.yahooapis.com/v1/public/yql"
+                url="https://jsonp.afeld.me/"
                 handle-as="json"
                 on-response="_handleResponse"
                 debounce-duration="300"
@@ -23,14 +23,9 @@
             requestQuotes: function(symbols) {
                 var xhr = this.$.query;
                 if (xhr != undefined && symbols.length > 0) {
-                    var stockList = "\"" + symbols.join("\",\"") + "\"";
+                    var url = "http://finance.yahoo.com/webservice/v1/symbols/" + symbols.join(",") +"/quote?format=json&view=detail";
                     xhr.params = {
-                        q: 'select * from yahoo.finance.quote where symbol in (' + stockList + ')',
-                        format: 'json',
-                        diagnostics: 'false',
-                        env: 'store://datatables.org/alltableswithkeys',
-                        callback: ''
-
+                        url: url
                     };
                     xhr.generateRequest();
                 }

@@ -93,6 +93,14 @@ PortfolioFIFO.prototype = {
 
     clone: function () {
         return JSON.parse(JSON.stringify(this));
+    },
+
+    getStockAndClose: function() {
+        var array = [];
+        for(var key in this.fifo) {
+            array[key] = this.fifo[key].close;
+        }
+        return array;
     }
 
 }
