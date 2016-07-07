@@ -5,7 +5,7 @@
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
-
+<link rel="import" href="two-way-toggle-button.html">
 
 <dom-module id="sw-portfolio-content">
     <template>
@@ -19,7 +19,8 @@
                 background-color: #0a589b;
                 display: flex;
                 margin: 0px !important;
-                padding: 28px !important;
+                padding: 18px !important;
+                min-height: 60px;
             }
 
             .form > * {
@@ -35,7 +36,11 @@
                 fill: #ffffff;
             }
 
-            paper-dialog /deep/ paper-input /deep/ input {
+            .form paper-button {
+                background: #0c70c6;
+            }
+
+            .form /deep/ paper-input /deep/ input {
                 text-transform: uppercase;
             }
 
@@ -50,10 +55,17 @@
             vaadin-grid {
                 height: 100%;
             }
+
+            two-way-toggle-button {
+                align-self: flex-end;
+                margin-bottom: 12px;
+            }
+
         </style>
         <paper-dialog opened modal id="dialog">
             <div class="container">
                 <div class="form">
+                    <two-way-toggle-button left="Buy" right="Sell"></two-way-toggle-button>
                     <vaadin-date-picker label="Date"></vaadin-date-picker>
                     <paper-input label="Symbol" maxlength="12" minlength="1" pattern="[a-ZA-Z0-9]" required
                                  error-message="Invalid stock symbol"></paper-input>
