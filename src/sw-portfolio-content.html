@@ -66,6 +66,12 @@
                 margin-bottom: 12px;
             }
 
+            .buttons paper-button.left {
+                position: absolute;
+                left: 0px;
+                bottom: 0px;
+            }
+
         </style>
         <paper-dialog opened modal id="dialog">
             <div class="container">
@@ -81,7 +87,7 @@
                     <paper-button raised on-tap="_addTransaction">Add</paper-button>
                 </div>
 
-                <vaadin-grid id="portfolioGrid" items="{{tradeHistory}}" selection-mode="single">
+                <vaadin-grid id="portfolioGrid" items="{{tradeHistory}}" selection-mode="multi">
                     <table>
                         <colgroup>
                             <col name="date">
@@ -101,6 +107,7 @@
                     </table>
                 </vaadin-grid>
                 <div class="buttons">
+                    <paper-button on-tap="_remove" class="left">Remove Selected</paper-button>
                     <paper-button on-tap="_close">Close</paper-button>
                 </div>
             </div>
@@ -164,6 +171,22 @@
                     this.$.qty.value = undefined;
                     this.fire('transaction-updated', transaction);
                 }
+            },
+
+            _remove: function() {
+                var selection = this.$.portfolioGrid.selection.selected();
+                selection.sort();
+                for (var i = 0; i < selection.length; i++) {
+                    this.$.portfolioGrid.selection.deselect(selection[i]);
+                    // selection[i] contains the index we need to remove.
+                    // -i is there to account for the amount that we've already removed, thus the offset
+                    var index = selection[i] - i;
+                    this.splice('tradeHistory', index, 1);
+                }
+
+                this.$.portfolioGrid.size = this.tradeHistory.length;
+                this.$.portfolioGrid.refreshItems();
+                this.fire('transaction-updated', selection);
             }
         });
     </script>

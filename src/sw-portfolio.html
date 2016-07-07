@@ -435,6 +435,10 @@
                 changeTotalPercent: {
                     type: String,
                     value: "N/A"
+                },
+                _updateData: {
+                    type: Boolean,
+                    value: false
                 }
             },
 
@@ -683,21 +687,28 @@
 
             _dialogClosed: function (e) {
                 document.querySelector("body").removeChild(document.getElementById("portfolio-content-dialog"));
+                if(portfolioView._updateData) {
+                    var tradeHistory = portfolioView.portfolioData.tradeHistory;
+                    var stocks = [];
+                    for(var i=0; i < tradeHistory.length; i++) {
+                        stocks[tradeHistory[i].symbol] = true;
+                    }
+                    var symbols = [];
+                    for(var symbol in stocks) {
+                        symbols.push(symbol);
+                    }
+
+                    portfolioView.$.portfolioGrid.size = portfolioView.portfolioStatus.length;
+                    portfolioView.$.portfolioGrid.refreshItems();
+                    portfolioView.$.localStorage.save();
+                    portfolioView._loadHistoryData(symbols, true);
+                    portfolioView._updateData = false;
+                }
             },
 
             _transactionUpdated: function(event) {
-                var tradeHistory = portfolioView.portfolioData.tradeHistory;
-                var stocks = [];
-                for(var i=0; i < tradeHistory.length; i++) {
-                    stocks[tradeHistory[i].symbol] = true;
-                }
-                var symbols = [];
-                for(var symbol in stocks) {
-                    symbols.push(symbol);
-                }
-
-                portfolioView.$.localStorage.save();
-                portfolioView._loadHistoryData(symbols, true);
+                // Flag that we need to update content when window is closed
+                portfolioView._updateData = true;
             }
 
 
