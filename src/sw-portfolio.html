@@ -393,6 +393,7 @@
 
     <!-- Creates the element's prototype and registers it -->
     <script>
+        var portfolioView = undefined;
         Polymer({
             is: 'sw-portfolio',
             properties: {
@@ -430,6 +431,8 @@
             },
 
             ready: function () {
+                portfolioView = this;
+
                 this.$.portfolioGrid.cellClassGenerator = function (cell) {
                     if (cell.columnName == 'changeToday') {
                         var change = cell.row.data.change;
@@ -573,7 +576,7 @@
                     var stock = this._findStock(quote.symbol);
 
                     var closeTime = moment(quote.utctime);
-                    stock.name = quote.issuer_name;
+                    stock.name = quote.name;
                     stock.price = parseFloat(quote.price).toFixed(2);
 
                     stock.amount = currentPortfolioStatus.amountOfStocks(quote.symbol);
@@ -666,12 +669,28 @@
                 dialog.tradeHistory = this.portfolioData.tradeHistory;
                 dialog.setAttribute("id", "portfolio-content-dialog");
                 dialog.addEventListener('close', this._dialogClosed);
+                dialog.addEventListener('transaction-updated', this._transactionUpdated);
                 document.querySelector("body").appendChild(dialog);
             },
 
             _dialogClosed: function (e) {
                 document.querySelector("body").removeChild(document.getElementById("portfolio-content-dialog"));
             },
+
+            _transactionUpdated: function(event) {
+                var tradeHistory = portfolioView.portfolioData.tradeHistory;
+                var stocks = [];
+                for(var i=0; i < tradeHistory.length; i++) {
+                    stocks[tradeHistory[i].symbol] = true;
+                }
+                var symbols = [];
+                for(var symbol in stocks) {
+                    symbols.push(symbol);
+                }
+
+                portfolioView.$.localStorage.save();
+                portfolioView._loadHistoryData(symbols, true);
+            }
 
 
         });

@@ -6,6 +6,7 @@
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="two-way-toggle-button.html">
+<link rel="import" href="momentjs.html">
 
 <dom-module id="sw-portfolio-content">
     <template>
@@ -44,6 +45,10 @@
                 text-transform: uppercase;
             }
 
+            .form /deep/ paper-input /deep/ paper-input-error {
+                color: #ffffff !important;
+            }
+
             .container {
                 display: flex;
                 flex-direction: column;
@@ -65,15 +70,15 @@
         <paper-dialog opened modal id="dialog">
             <div class="container">
                 <div class="form">
-                    <two-way-toggle-button left="Buy" right="Sell"></two-way-toggle-button>
-                    <vaadin-date-picker label="Date"></vaadin-date-picker>
+                    <two-way-toggle-button left="Buy" right="Sell" id="buyOrSell"></two-way-toggle-button>
+                    <vaadin-date-picker label="Date" id="txDate"></vaadin-date-picker>
                     <paper-input label="Symbol" maxlength="12" minlength="1" pattern="[a-ZA-Z0-9]" required
-                                 error-message="Invalid stock symbol"></paper-input>
-                    <paper-input label="Price" maxlength="6" minlength="1" pattern="[0-9.,]" required
-                                 error-message="Please enter a number"></paper-input>
-                    <paper-input label="Quantity" maxlength="6" minlength="1" pattern="[0-9]" required
-                                 error-message="Please enter a number"></paper-input>
-                    <paper-button raised>Add</paper-button>
+                                 error-message="Invalid stock symbol" id="symbol"></paper-input>
+                    <paper-input label="Price" maxlength="6" minlength="1" pattern="[0-9]*\.?[0-9]+" required
+                                 error-message="Please enter a valid price" id="price"></paper-input>
+                    <paper-input label="Quantity" maxlength="6" minlength="1" pattern="[0-9]+" required
+                                 error-message="Please enter a number" id="qty"></paper-input>
+                    <paper-button raised on-tap="_addTransaction">Add</paper-button>
                 </div>
 
                 <vaadin-grid id="portfolioGrid" items="{{tradeHistory}}" selection-mode="single">
@@ -114,9 +119,51 @@
                 }
             },
 
+            ready: function () {
+                this.$.txDate.required = true;
+            },
+
             _close: function (event) {
                 this.fire('close', this);
                 event.stopPropagation();
+            },
+
+            _addTransaction: function () {
+                var isValid = true;
+                isValid = this.$.txDate.validate() && isValid ? true : false;
+                isValid = this.$.symbol.validate() && isValid ? true : false;
+                isValid = this.$.price.validate() && isValid ? true : false;
+                isValid = this.$.qty.validate() && isValid ? true : false;
+                if (isValid) {
+                    var transaction = {
+                        symbol: this.$.symbol.value.toUpperCase(),
+                        buy: !this.$.buyOrSell.checked,
+                        amount: parseInt(this.$.qty.value),
+                        price: parseFloat(this.$.price.value),
+                        date: moment(this.$.txDate.value).format('YYYY-MM-DD')
+                    }
+                    this.push('tradeHistory', transaction);
+                    function compare(o1, o2) {
+                        if (moment(o1.date, 'YYYY-MM-DD').isBefore(moment(o2.date, 'YYYY-MM-DD'), 'day')) {
+                            return -1;
+                        }
+                        if (moment(o1.date, 'YYYY-MM-DD').isAfter(moment(o2.date, 'YYYY-MM-DD'), 'day')) {
+                            return 1;
+                        }
+                        return 0;
+                    }
+
+                    this.tradeHistory.sort(compare);
+                    this.$.portfolioGrid.size = this.tradeHistory.length;
+                    this.$.portfolioGrid.refreshItems();
+
+                    this.$.buyOrSell.checked = false;
+                    this.$.txDate.value = undefined;
+                    this.$.symbol.value = undefined;
+                    this.$.price.value = undefined;
+                    this.$.qty.value = undefined;
+                    this.fire('transaction-updated', transaction);
+                }
             }
         });
     </script>
