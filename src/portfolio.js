@@ -44,7 +44,7 @@ Portfolio.prototype = {
             for (var i = 0; i < this.performance.length; i++) {
                 var formattedDate = dateObject.format("YYYY-MM-DD");
                 if (formattedDate in this.dateToIndexMap) {
-                    this.performance[i].portfolio.pop(symbol, amount);
+                    this.performance[this.dateToIndexMap[formattedDate]].portfolio.pop(symbol, amount);
                 }
                 dateObject.add(1, 'days');
             }
