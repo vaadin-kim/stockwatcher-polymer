@@ -65,6 +65,12 @@
                     height: 30%;
                     order: 1;
                 }
+
+                paper-fab#editPortfolio {
+                    bottom: 10px;
+                    right: 10px;
+                }
+
             }
 
             /* Portrait tablet */
@@ -118,6 +124,11 @@
                     border-right: solid 1px #d8d8d8;
                     box-sizing: border-box;
                 }
+
+                paper-fab#editPortfolio {
+                    bottom: 10px;
+                    right: 10px;
+                }
             }
 
             /* Landscape phone */
@@ -163,6 +174,11 @@
 
                 #historyChart {
                     display: none;
+                }
+
+                paper-fab#editPortfolio {
+                    bottom: 10px;
+                    right: 10px;
                 }
             }
 
@@ -210,6 +226,12 @@
 
                 #historyChart {
                     display: none;
+                }
+
+                paper-fab#editPortfolio {
+                    top: 20px;
+                    right: 10px;
+                    z-index: 1200000;
                 }
             }
 
@@ -284,23 +306,17 @@
                 box-sizing: border-box;
             }
 
-            .gridContainer .toolbar paper-fab {
-                --paper-fab-background: #2778bd;
-                float: right;
-                margin-left: 10px;
-            }
-
-            .gridContainer .toolbar paper-button {
-                float: left;
-                color: #AAAAAA;
-            }
-
             vaadin-grid /deep/ .positive-change {
                 color: #006400;
             }
 
             vaadin-grid /deep/ .negative-change {
                 color: #ff0000;
+            }
+
+            paper-fab#editPortfolio {
+                --paper-fab-background: #2778bd;
+                position: absolute;
             }
         </style>
         <div class="viewContainer">
@@ -364,15 +380,7 @@
                     </table>
                 </vaadin-grid>
 
-                <div class="toolbar">
-                    <paper-button on-tap="_toggleList">
-                        <iron-icon icon="vaadin-icons:lines-list"></iron-icon>
-                    </paper-button>
-                    <paper-fab icon="vaadin-icons:plus" mini id="addStock" on-tap="_showPortfolioContentDialog"></paper-fab>
-                    <iron-collapse id="collapseRemoveButton">
-                        <paper-fab icon="vaadin-icons:minus" mini id="removeStocks" on-tap="_removeStocks"></paper-fab>
-                    </iron-collapse>
-                </div>
+                <paper-fab icon="vaadin-icons:pencil" mini id="editPortfolio" on-tap="_showPortfolioContentDialog"></paper-fab>
             </div>
         </div>
 
