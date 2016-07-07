@@ -72,6 +72,14 @@
                 bottom: 0px;
             }
 
+            vaadin-grid /deep/ .buy-transaction {
+                color: #006400;
+            }
+
+            vaadin-grid /deep/ .sell-transaction {
+                color: #ff0000;
+            }
+
         </style>
         <paper-dialog opened modal id="dialog">
             <div class="container">
@@ -128,6 +136,14 @@
 
             ready: function () {
                 this.$.txDate.required = true;
+
+                this.$.portfolioGrid.rowClassGenerator = function(row) {
+                    if(row.data.buy) {
+                        return "buy-transaction";
+                    } else {
+                        return "sell-transaction";
+                    }
+                };
             },
 
             _close: function (event) {
