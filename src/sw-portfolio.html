@@ -688,7 +688,12 @@
             _dialogClosed: function (e) {
                 document.querySelector("body").removeChild(document.getElementById("portfolio-content-dialog"));
                 if(portfolioView._updateData) {
+                    portfolioView.$.localStorage.save();
+                    portfolioView.portfolio = new Portfolio();
+                    portfolioView.portfolioStatus = [];
+                    portfolioView._portfolioLoaded();
                     var tradeHistory = portfolioView.portfolioData.tradeHistory;
+
                     var stocks = [];
                     for(var i=0; i < tradeHistory.length; i++) {
                         stocks[tradeHistory[i].symbol] = true;
@@ -698,9 +703,7 @@
                         symbols.push(symbol);
                     }
 
-                    portfolioView.$.portfolioGrid.size = portfolioView.portfolioStatus.length;
-                    portfolioView.$.portfolioGrid.refreshItems();
-                    portfolioView.$.localStorage.save();
+                    // Force refresh data
                     portfolioView._loadHistoryData(symbols, true);
                     portfolioView._updateData = false;
                 }
