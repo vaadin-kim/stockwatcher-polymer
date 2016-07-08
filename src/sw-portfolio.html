@@ -603,12 +603,11 @@
                     this.portfolio.setClosePrice(quote.symbol, parseFloat(quote.price), closeTime.format("YYYY-MM-DD"));
                 }
 
-                var previousValue = currentPortfolioStatus.value();
                 this.changeTodaySum = changeToday.toFixed(2);
                 this.changeTotalSum = changeTotal.toFixed(2);
 
-                var percent = totalValue / previousValue;
-                percent = ((percent - 1) * 100).toFixed(2);
+                var percent = (totalValue-changeToday) / totalValue;
+                percent = ((1 - percent) * 100).toFixed(2);
                 this.changeTodayPercent = percent;
 
                 percent = totalValue / currentPortfolioStatus.cost();
