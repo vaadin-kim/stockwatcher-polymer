@@ -15,8 +15,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
-<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="sw-add-stock-dialog.html">
+<link rel="import" href="yahoo-finance.quote.html">
+
 
 <dom-module id="sw-quotes">
     <template>
@@ -107,13 +108,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                            on-iron-localstorage-load="dataLoaded"
         ></iron-localstorage>
 
-        <iron-ajax
-                id="apiRequest"
-                url="https://jsonp.afeld.me/"
-                handle-as="json"
-                on-response="_updateStock"
-                debounce-duration="300"
-                verbose></iron-ajax>
+        <yahoo-finance-quote on-response="_handleQuoteResponse" id="quoteRequest"></yahoo-finance-quote>
     </template>
 
     <script>
@@ -210,20 +205,22 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 this._toggleList();
             },
 
-            _updateStock: function (event) {
-                var response = event.detail.response;
+            _handleQuoteResponse: function (event) {
+                var quotes = event.detail.list.resources;
+                for(var i=0; i < quotes.length; i++) {
+                    var quote = quotes[i].resource.fields;
+                    function isName(element) {
+                        return quote.symbol == element.symbol.toUpperCase();
+                    }
 
-                function isName(element) {
-                    return response.Symbol == element.symbol.toUpperCase();
+                    var element = quotesView.stocks.find(isName);
+                    element.symbol = quote.symbol;
+                    element.name = quote.name;
+                    element.value = parseFloat(quote.price).toFixed(2);
+                    element.change = parseFloat(quote.change).toFixed(2);
+                    element.changePercent = parseFloat(quote.chg_percent).toFixed(2);
+                    element.lastUpdate = quote.utctime;
                 }
-
-                var element = this.stocks.find(isName);
-                element.symbol = response.Symbol;
-                element.name = response.Name;
-                element.value = parseFloat(response.LastPrice).toFixed(2);
-                element.change = parseFloat(response.Change).toFixed(2);
-                element.changePercent = parseFloat(response.ChangePercent).toFixed(2);
-                element.lastUpdate = response.Timestamp;
                 quotesView.$.stocksGrid.size = quotesView.stocks.length;
                 quotesView.$.stocksGrid.refreshItems();
                 quotesView.$.localStorage.save();
@@ -237,15 +234,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                         return;
                     }
 
+                    var symbols = [];
                     for (var i = 0; i < _self.stocks.length; i++) {
-                        var xhr = _self.$.apiRequest;
-                        if (xhr != undefined) {
-                            xhr.params = {url: "http://dev.markitondemand.com/MODApis/Api/v2/Quote/json?symbol=" + _self.stocks[i].symbol};
-                            xhr.generateRequest();
-                        }
+                        symbols.push(_self.stocks[i].symbol);
                     }
+                    _self.$.quoteRequest.requestQuotes(symbols);
                     resolve();
-
                 });
 
                 loadStocks.then(
