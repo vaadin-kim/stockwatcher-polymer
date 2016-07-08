@@ -1,0 +1,41 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+
+<dom-module id="yahoo-finance-history">
+    <template>
+        <iron-ajax
+                id="query"
+                url="http://query.yahooapis.com/v1/public/yql"
+                handle-as="json"
+                on-response="_handleResponse"
+                debounce-duration="300"
+                verbose></iron-ajax>
+    </template>
+    <script>
+        Polymer({
+            is: 'yahoo-finance-history',
+
+            _handleResponse: function(event) {
+                event.stopPropagation();
+                this.fire('response', event.detail.response);
+            },
+
+            requestHistory: function(symbols, startDate, endDate) {
+                var xhr = this.$.query;
+                if (xhr != undefined && symbols.length > 0) {
+                    var stockList = "\"" + symbols.join("\",\"") + "\"";
+                    xhr.params = {
+                        q: 'select * from yahoo.finance.historicaldata where symbol  IN (' + stockList + ') and startDate = "' + startDate + '" and endDate = "' + endDate + '"',
+                        format: 'json',
+                        diagnostics: 'false',
+                        env: 'store://datatables.org/alltableswithkeys',
+                        callback: ''
+
+                    };
+                    xhr.generateRequest();
+                }
+            }
+        })
+    </script>
+</dom-module>
+
