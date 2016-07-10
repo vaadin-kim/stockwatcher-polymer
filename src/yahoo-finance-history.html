@@ -9,11 +9,20 @@
                 handle-as="json"
                 on-response="_handleResponse"
                 debounce-duration="300"
+                loading="{{loading}}"
                 verbose></iron-ajax>
     </template>
     <script>
         Polymer({
             is: 'yahoo-finance-history',
+
+            properties: {
+                loading: {
+                    type: Boolean,
+                    notify: true,
+                    value: false
+                }
+            },
 
             _handleResponse: function(event) {
                 event.stopPropagation();

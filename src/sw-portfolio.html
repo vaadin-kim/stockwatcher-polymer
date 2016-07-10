@@ -5,6 +5,8 @@
 <link rel="import" href="../bower_components/vaadin-icons/vaadin-icons.html">
 <link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-progress/paper-progress.html">
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="momentjs.html">
@@ -319,7 +321,26 @@
                 --paper-fab-background: #2778bd;
                 position: absolute;
             }
+
+            paper-progress {
+                width: 100%;
+                --paper-progress-active-color: #2778bd;
+                position: absolute;
+                top: 0;
+                left: 0;
+                z-index: 1003;
+            }
+
+            paper-toast {
+                z-index: 1001;
+                width: 100%;
+                vertical-align: middle;
+            }
         </style>
+        <template is="dom-if" if="{{_showProgressBar(loadingQuotes, loadingHistory)}}">
+            <paper-progress id="progress" indeterminate></paper-progress>
+        </template>
+
         <div class="viewContainer">
             <div id="progress-data">
                 <div id="numeric-progress">
@@ -381,7 +402,8 @@
                     </table>
                 </vaadin-grid>
 
-                <paper-fab icon="vaadin-icons:pencil" mini id="editPortfolio" on-tap="_showPortfolioContentDialog"></paper-fab>
+                <paper-fab icon="vaadin-icons:pencil" mini id="editPortfolio"
+                           on-tap="_showPortfolioContentDialog"></paper-fab>
             </div>
         </div>
 
@@ -390,8 +412,13 @@
                            on-iron-localstorage-load-empty="_initializeDefaultPortfolio"
                            on-iron-localstorage-load="_portfolioLoaded"
         ></iron-localstorage>
-        <yahoo-finance-quote on-response="_handleQuoteResponse" id="quoteRequest"></yahoo-finance-quote>
-        <yahoo-finance-history on-response="_parseStockHistoryData" id="historyDataRequest"></yahoo-finance-history>
+        <yahoo-finance-quote on-response="_handleQuoteResponse" id="quoteRequest" loading="{{loadingQuotes}}"
+                             on-error="_handleError"></yahoo-finance-quote>
+        <yahoo-finance-history on-response="_parseStockHistoryData" id="historyDataRequest" loading="{{loadingHistory}}"
+                               on-error="_handleError"></yahoo-finance-history>
+
+        <paper-toast id="offlineNotification" duration="5000"
+                     text="Unable to refresh data"></paper-toast>
     </template>
 
     <!-- Creates the element's prototype and registers it -->
@@ -606,7 +633,7 @@
                 this.changeTodaySum = changeToday.toFixed(2);
                 this.changeTotalSum = changeTotal.toFixed(2);
 
-                var percent = (totalValue-changeToday) / totalValue;
+                var percent = (totalValue - changeToday) / totalValue;
                 percent = ((1 - percent) * 100).toFixed(2);
                 this.changeTodayPercent = percent;
 
@@ -653,8 +680,8 @@
                 this.$.historyChart.chart.reflow();
             },
 
-            getClasses: function(sum) {
-                if(parseFloat(sum) >= 0) {
+            getClasses: function (sum) {
+                if (parseFloat(sum) >= 0) {
                     return "positive-progress";
                 } else {
                     return "negative-progress";
@@ -672,7 +699,7 @@
 
             _dialogClosed: function (e) {
                 document.querySelector("body").removeChild(document.getElementById("portfolio-content-dialog"));
-                if(portfolioView._updateData) {
+                if (portfolioView._updateData) {
                     portfolioView.$.localStorage.save();
                     portfolioView.portfolio = new Portfolio();
                     portfolioView.portfolioStatus = [];
@@ -680,11 +707,11 @@
                     var tradeHistory = portfolioView.portfolioData.tradeHistory;
 
                     var stocks = [];
-                    for(var i=0; i < tradeHistory.length; i++) {
+                    for (var i = 0; i < tradeHistory.length; i++) {
                         stocks[tradeHistory[i].symbol] = true;
                     }
                     var symbols = [];
-                    for(var symbol in stocks) {
+                    for (var symbol in stocks) {
                         symbols.push(symbol);
                     }
 
@@ -694,12 +721,18 @@
                 }
             },
 
-            _transactionUpdated: function(event) {
+            _transactionUpdated: function (event) {
                 // Flag that we need to update content when window is closed
                 portfolioView._updateData = true;
+            },
+
+            _handleError: function (event) {
+                this.$.offlineNotification.open();
+            },
+
+            _showProgressBar: function(loadingQuotes, loadingHistory) {
+                return loadingQuotes || loadingHistory;
             }
-
-
         });
     </script>
 
