@@ -9,21 +9,32 @@
                 handle-as="json"
                 on-response="_handleResponse"
                 debounce-duration="300"
+                loading="{{loading}}"
                 verbose></iron-ajax>
     </template>
     <script>
         Polymer({
             is: 'yahoo-finance-quote',
 
-            _handleResponse: function(event) {
-                event.stopPropagation();
-                this.fire('response', event.detail.response);
+            properties: {
+                loading: {
+                    type: Boolean,
+                    notify: true,
+                    value: false
+                }
             },
 
-            requestQuotes: function(symbols) {
+            _handleResponse: function (event) {
+                if (event.type != "error") {
+                    event.stopPropagation();
+                    this.fire('response', event.detail.response);
+                }
+            },
+
+            requestQuotes: function (symbols) {
                 var xhr = this.$.query;
                 if (xhr != undefined && symbols.length > 0) {
-                    var url = "http://finance.yahoo.com/webservice/v1/symbols/" + symbols.join(",") +"/quote?format=json&view=detail";
+                    var url = "http://finance.yahoo.com/webservice/v1/symbols/" + symbols.join(",") + "/quote?format=json&view=detail";
                     xhr.params = {
                         url: url
                     };

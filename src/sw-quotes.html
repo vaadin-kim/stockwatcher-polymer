@@ -15,6 +15,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-progress/paper-progress.html">
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="sw-add-stock-dialog.html">
 <link rel="import" href="yahoo-finance-quote.html">
@@ -88,11 +89,28 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 top: 0;
                 left: 0;
                 z-index: 1000;
-                visibility: hidden;
+            }
+
+            paper-toast {
+                z-index: 1001;
+                width: 100%;
+                vertical-align: middle;
+            }
+
+            paper-toast paper-button {
+                float: right;
+            }
+
+            paper-toast /deep/ span {
+                position: relative;
+                top: 50%;
+                transform: translateY(-50%);
             }
         </style>
 
-        <paper-progress id="progress" indeterminate></paper-progress>
+        <template is="dom-if" if="{{loading}}">
+            <paper-progress id="progress" indeterminate></paper-progress>
+        </template>
         <div class="container">
             <vaadin-grid id="stocksGrid" items="{{stocks}}" selection-mode="single">
                 <table>
@@ -127,7 +145,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                            on-iron-localstorage-load="dataLoaded"
         ></iron-localstorage>
 
-        <yahoo-finance-quote on-response="_handleQuoteResponse" id="quoteRequest"></yahoo-finance-quote>
+        <yahoo-finance-quote on-response="_handleQuoteResponse" id="quoteRequest" loading="{{loading}}"
+                             on-error="_handleError"></yahoo-finance-quote>
+
+        <paper-toast id="offlineNotification" duration="5000"
+                     text="Unable to refresh data"></paper-toast>
     </template>
 
     <script>
@@ -189,7 +211,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 }
 
                 quotesView.stocks.sort(compare);
-
+                quotesView.$.stocksGrid.size = quotesView.stocks.length;
+                quotesView.$.stocksGrid.refreshItems();
                 quotesView._updateStockQuotes();
                 document.querySelector("body").removeChild(document.getElementById("add-stock-dialog"));
             },
@@ -225,10 +248,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             },
 
             _handleQuoteResponse: function (event) {
-                this.$.progress.style.visibility = 'hidden';
                 var quotes = event.detail.list.resources;
-                for(var i=0; i < quotes.length; i++) {
+                for (var i = 0; i < quotes.length; i++) {
                     var quote = quotes[i].resource.fields;
+
                     function isName(element) {
                         return quote.symbol == element.symbol.toUpperCase();
                     }
@@ -251,16 +274,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 for (var i = 0; i < this.stocks.length; i++) {
                     symbols.push(this.stocks[i].symbol);
                 }
-                this.$.progress.style.visibility = 'visible';
                 this.$.quoteRequest.requestQuotes(symbols);
             },
 
-            dataLoaded: function() {
+            dataLoaded: function () {
                 this._setRenderers();
                 this._updateStockQuotes();
             },
 
-            _setRenderers: function() {
+            _setRenderers: function () {
                 this.$.stocksGrid.columns[0].renderer = function (cell) {
                     cell.element.innerHTML = "<div>" + cell.row.data.symbol + "<br /><span class='stockdetails'>" + cell.row.data.name + "</span></div>";
                 };
@@ -299,7 +321,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     }
                 ];
                 this._updateStockQuotes();
-            }
+            },
+
+            _handleError: function (event) {
+                this.$.offlineNotification.open();
+            },
         });
 
     </script>
