@@ -72,6 +72,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 clear: left;
                 font-size: 11px;
             }
+
+            @media (max-width: 420px) {
+                vaadin-grid /deep/ .stockdetails {
+                    text-overflow: ellipsis;
+                    max-width: 80px;
+                }
+            }
         </style>
 
         <div class="container">
