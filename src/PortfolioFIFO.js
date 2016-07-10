@@ -88,7 +88,9 @@ PortfolioFIFO.prototype = {
     },
 
     setClosePrice: function(symbol, closePrice) {
-        this.fifo[symbol].close = closePrice;
+        if(symbol in this.fifo) {
+            this.fifo[symbol].close = closePrice;
+        }
     },
 
     clone: function () {
