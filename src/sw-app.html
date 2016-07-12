@@ -121,6 +121,10 @@
                 '_routePageChanged(routeData.page)'
             ],
 
+            ready: function() {
+                window.viewportUnitsBuggyfill.refresh();
+            },
+
             _routePageChanged: function (page) {
                 this.page = page || 'quotes';
 
