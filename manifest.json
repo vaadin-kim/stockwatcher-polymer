@@ -2,16 +2,16 @@
   "name": "Stock Watcher",
   "short_name": "Stock Watcher",
     "icons": [{
-      "src": "images/sw-icon.svg",
-      "type": "image/svg",
+      "src": "images/sw-icon-32.png",
+      "type": "image/png",
       "sizes": "32x32"
     }, {
       "src": "images/sw-icon.svg",
       "type": "image/svg",
       "sizes": "128x128"
     }, {
-      "src": "images/sw-icon.svg",
-      "type": "image/svg",
+      "src": "images/sw-icon-144.png",
+      "type": "image/png",
       "sizes": "144x144"
     }, {
       "src": "images/sw-icon.svg",
