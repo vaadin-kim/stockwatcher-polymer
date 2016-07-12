@@ -178,12 +178,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 var dialog = document.createElement('sw-add-stock-dialog');
                 dialog.setAttribute("id", "add-stock-dialog");
                 dialog.addEventListener('symbol-added', this._symbolAdded);
-                dialog.addEventListener('dialog-cancelled', this._dialogCancelled);
+                dialog.addEventListener('dialog-cancelled', this._removeDialog);
                 document.querySelector("body").appendChild(dialog);
             },
 
             _symbolAdded: function (e) {
                 var symbol = e.detail.symbol;
+                // Validate that there are no duplicates
+                for (var i = 0; i < quotesView.stocks.length; i++) {
+                    if(quotesView.stocks[i].symbol.toUpperCase() == symbol.toUpperCase()) {
+                        quotesView._removeDialog();
+                        return;
+                    }
+                }
+
                 var newStock = {
                     symbol: symbol,
                     name: "",
@@ -206,10 +214,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 quotesView.$.stocksGrid.size = quotesView.stocks.length;
                 quotesView.$.stocksGrid.refreshItems();
                 quotesView._updateStockQuotes();
-                document.querySelector("body").removeChild(document.getElementById("add-stock-dialog"));
+                quotesView._removeDialog();
             },
 
-            _dialogCancelled: function () {
+            _removeDialog: function () {
                 document.querySelector("body").removeChild(document.getElementById("add-stock-dialog"));
             },
 
