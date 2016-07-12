@@ -80,6 +80,20 @@
                 color: #ff0000;
             }
 
+            @media (max-width: 430px) {
+                .form {
+                    flex-direction: column;
+                }
+
+                vaadin-grid {
+                    flex: 1;
+                }
+
+                two-way-toggle-button {
+                    align-self: flex-start !important;
+                }
+            }
+
         </style>
         <paper-dialog opened modal id="dialog">
             <div class="container">
