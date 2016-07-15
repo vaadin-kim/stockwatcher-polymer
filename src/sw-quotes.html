@@ -171,6 +171,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     }
                 };
 
+                this.$.stocksGrid.addEventListener('selected-items-changed', function() {
+                    var selectedIndex = quotesView.$.stocksGrid.selection.selected();
+                    if(!isNaN(selectedIndex) && selectedIndex != '') {
+                        console.log(quotesView.$.stocksGrid.items[selectedIndex]);
+                        /* TODO open dialog */
+                        /*document.getElementById("stockDetails")) */
+                    }
+                });
+
                 window.viewportUnitsBuggyfill.refresh();
             },
 
