@@ -85,7 +85,7 @@
                 for (var i = 0; i < this._quoteCache.length; i++) {
                     // Clear cache of everything that is older than 5 minutes
                     if (moment().diff(moment(this._quoteCache[i].timestamp, 'x'), 'minutes') > 5) {
-                        this._quoteCache.remove(i);
+                        this._quoteCache.splice(i, 1);
                         i--;
                     }
                 }
