@@ -10,7 +10,7 @@
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="momentjs.html">
-<link rel="import" href="yahoo-finance-quote.html">
+<link rel="import" href="finance-quote.html">
 <link rel="import" href="yahoo-finance-history.html">
 <link rel="import" href="sw-portfolio-content.html">
 
@@ -412,8 +412,8 @@
                            on-iron-localstorage-load-empty="_initializeDefaultPortfolio"
                            on-iron-localstorage-load="_portfolioLoaded"
         ></iron-localstorage>
-        <yahoo-finance-quote on-response="_handleQuoteResponse" id="quoteRequest" loading="{{loadingQuotes}}"
-                             on-error="_handleError"></yahoo-finance-quote>
+        <finance-quote on-response="_handleQuoteResponse" id="quoteRequest" loading="{{loadingQuotes}}"
+                             on-error="_handleError"></finance-quote>
         <yahoo-finance-history on-response="_parseStockHistoryData" id="historyDataRequest" loading="{{loadingHistory}}"
                                on-error="_handleError"></yahoo-finance-history>
 
@@ -461,7 +461,10 @@
                 _updateData: {
                     type: Boolean,
                     value: false
-                }
+                },
+                _changeToday: 0,
+                _changeTotal: 0,
+                _totalValue: 0
             },
 
             ready: function () {
@@ -588,59 +591,55 @@
                         xhr.requestHistory(stocks, startDate, endDate);
                     }
                 }
+
+                this._changeToday = 0;
+                this._changeTotal = 0;
+                this._totalValue = 0;
                 this.$.quoteRequest.requestQuotes(stocks);
             },
 
             _handleQuoteResponse: function (event) {
-                var quotes = event.detail.list.resources;
+                var quote = event.detail;
                 var currentPortfolioStatus = this.portfolio.getPortfolio();
+                var stock = this._findStock(quote.symbol);
 
-                var changeToday = 0;
-                var changeTotal = 0;
-                var totalValue = 0;
+                var closeTime = moment(quote.lastUpdate);
+                stock.name = quote.name;
+                stock.price = parseFloat(quote.value).toFixed(2);
 
-                for (var i = 0; i < quotes.length; i++) {
-                    var quote = quotes[i].resource.fields;
-                    var stock = this._findStock(quote.symbol);
+                stock.amount = currentPortfolioStatus.amountOfStocks(quote.symbol);
 
-                    var closeTime = moment(quote.utctime);
-                    stock.name = quote.name;
-                    stock.price = parseFloat(quote.price).toFixed(2);
-
-                    stock.amount = currentPortfolioStatus.amountOfStocks(quote.symbol);
-
-                    if (closeTime.isSame(moment(), 'day')) {
-                        stock.change = (parseFloat(quote.change) * stock.amount).toFixed(2);
-                        stock.changePercent = parseFloat(quote.chg_percent).toFixed(2);
-                        changeToday += (parseFloat(quote.change) * stock.amount);
-                    } else {
-                        stock.change = "0.00";
-                        stock.changePercent = "0.00";
-                    }
-
-                    var value = currentPortfolioStatus.amountOfStocks(quote.symbol) * parseFloat(quote.price);
-                    stock.value = parseInt(value);
-                    totalValue += value;
-                    stock.cost = parseInt(currentPortfolioStatus.costForStock(quote.symbol));
-                    stock.allTimeChange = stock.value - stock.cost;
-                    changeTotal += stock.allTimeChange;
-
-                    var allTimePercent = stock.value / stock.cost;
-                    allTimePercent = ((allTimePercent - 1) * 100).toFixed(2);
-
-                    stock.allTimeChangePercent = allTimePercent;
-
-                    this.portfolio.setClosePrice(quote.symbol, parseFloat(quote.price), closeTime.format("YYYY-MM-DD"));
+                if (closeTime.isSame(moment(), 'day')) {
+                    stock.change = (parseFloat(quote.change) * stock.amount).toFixed(2);
+                    stock.changePercent = parseFloat(quote.changePercent).toFixed(2);
+                    this._changeToday += (parseFloat(quote.change) * stock.amount);
+                } else {
+                    stock.change = "0.00";
+                    stock.changePercent = "0.00";
                 }
 
-                this.changeTodaySum = changeToday.toFixed(2);
-                this.changeTotalSum = changeTotal.toFixed(2);
+                var value = currentPortfolioStatus.amountOfStocks(quote.symbol) * parseFloat(quote.value);
+                stock.value = parseInt(value);
+                this._totalValue += value;
+                stock.cost = parseInt(currentPortfolioStatus.costForStock(quote.symbol));
+                stock.allTimeChange = stock.value - stock.cost;
+                this._changeTotal += stock.allTimeChange;
 
-                var percent = (totalValue - changeToday) / totalValue;
+                var allTimePercent = stock.value / stock.cost;
+                allTimePercent = ((allTimePercent - 1) * 100).toFixed(2);
+
+                stock.allTimeChangePercent = allTimePercent;
+
+                this.portfolio.setClosePrice(quote.symbol, parseFloat(quote.value), closeTime.format("YYYY-MM-DD"));
+
+                this.changeTodaySum = this._changeToday.toFixed(2);
+                this.changeTotalSum = this._changeTotal.toFixed(2);
+
+                var percent = (this._totalValue - this._changeToday) / this._totalValue;
                 percent = ((1 - percent) * 100).toFixed(2);
                 this.changeTodayPercent = percent;
 
-                percent = totalValue / currentPortfolioStatus.cost();
+                percent = this._totalValue / currentPortfolioStatus.cost();
                 percent = ((percent - 1) * 100).toFixed(2);
                 this.changeTotalPercent = percent;
 
@@ -676,7 +675,7 @@
 
             _updateGraph: function () {
                 var data = {showInLegend: false, data: this.portfolio.getHistoryPerformance(), color: '#0a589b'};
-                if (this.$.historyChart.chart.series.length > 0) {
+                if (this.$.historyChart.chart.series != undefined && this.$.historyChart.chart.series.length > 0) {
                     this.$.historyChart.chart.series[0].remove(true);
                 }
                 this.$.historyChart.chart.addSeries(data);
@@ -733,7 +732,7 @@
                 this.$.offlineNotification.open();
             },
 
-            _showProgressBar: function(loadingQuotes, loadingHistory) {
+            _showProgressBar: function (loadingQuotes, loadingHistory) {
                 return loadingQuotes || loadingHistory;
             }
         });

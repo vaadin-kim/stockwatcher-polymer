@@ -1,0 +1,136 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="momentjs.html">
+
+<dom-module id="finance-quote">
+    <template>
+        <iron-ajax
+                id="query"
+                url="https://jsonp.afeld.me/"
+                handle-as="json"
+                on-response="_handleResponse"
+                debounce-duration="300"
+                loading="{{loading}}"
+                verbose></iron-ajax>
+        <iron-localstorage id="quoteCacheStorage" name="sw-quote-cache"
+                           value="{{_quoteCache}}"
+                           on-iron-localstorage-load-empty="_initializeCache"
+                           on-iron-localstorage-load="_cacheCleanup"
+        ></iron-localstorage>
+    </template>
+    <script>
+        Polymer({
+            is: 'finance-quote',
+
+            properties: {
+                loading: {
+                    type: Boolean,
+                    notify: true,
+                    value: false
+                },
+
+                _quoteCache: {
+                    type: Array,
+                    value: function () {
+                        return []
+                    }
+                },
+
+                _localStorageLoaded: false,
+                _requestQueue: {
+                    type: Array,
+                    value: function () {
+                        return []
+                    }
+                }
+
+            },
+
+            _handleResponse: function (event) {
+                if (event.type != "error") {
+                    event.stopPropagation();
+                    var response = event.detail.response;
+
+                    var data = {
+                        symbol: response.Symbol,
+                        name: response.Name,
+                        value: parseFloat(response.LastPrice).toFixed(2),
+                        change: parseFloat(response.Change).toFixed(2),
+                        changePercent: parseFloat(response.ChangePercent).toFixed(2),
+                        lastUpdate: response.Timestamp
+                    }
+
+                    var cacheData = this._findCache(response.Symbol);
+                    if (cacheData != undefined) {
+                        cacheData.timestamp = moment().format('x');
+                        cacheData.data = data;
+                    } else {
+                        this.push('_quoteCache', {
+                            timestamp: moment().format('x'),
+                            data: data
+                        });
+                    }
+
+                    this.$.quoteCacheStorage.save();
+                    this.fire('response', data);
+                }
+
+            },
+
+            _initializeCache: function () {
+                this._quoteCache = [];
+            },
+
+            _cacheCleanup: function () {
+                for (var i = 0; i < this._quoteCache.length; i++) {
+                    // Clear cache of everything that is older than 5 minutes
+                    if (moment().diff(moment(this._quoteCache[i].timestamp, 'x'), 'minutes') > 5) {
+                        this._quoteCache.remove(i);
+                        i--;
+                    }
+                }
+                this.$.quoteCacheStorage.save();
+
+                this._localStorageLoaded = true;
+                // Check if there are any pending requests
+                if(this._requestQueue.length > 0) {
+                    this.requestQuotes(this._requestQueue);
+                }
+            },
+
+            _findCache: function (symbol) {
+                for (var i = 0; i < this._quoteCache.length; i++) {
+                    if (this._quoteCache[i].data.symbol == symbol) {
+                        return this._quoteCache[i];
+                    }
+                }
+                return undefined;
+            },
+
+            requestQuotes: function (symbols) {
+                // Do a request only if cache has already been loaded
+                if(!this._localStorageLoaded) {
+                    this._requestQueue = symbols;
+                    return;
+                }
+
+                var xhr = this.$.query;
+                if (xhr != undefined && symbols.length > 0) {
+                    for (var i = 0; i < symbols.length; i++) {
+                        // Cache responses for five monutes
+                        var cache = this._findCache(symbols[i]);
+                        if (cache != undefined && moment().diff(moment(cache.timestamp, 'x'), 'minutes') < 5) {
+                            this.fire('response', cache.data);
+                            continue;
+                        }
+
+                        xhr.params = {url: "http://dev.markitondemand.com/MODApis/Api/v2/Quote/json?symbol=" + symbols[i]};
+                        xhr.generateRequest();
+                    }
+                }
+            }
+
+        })
+    </script>
+</dom-module>
+

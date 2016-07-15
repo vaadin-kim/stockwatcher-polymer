@@ -18,7 +18,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="sw-add-stock-dialog.html">
-<link rel="import" href="yahoo-finance-quote.html">
+<link rel="import" href="finance-quote.html">
 
 
 <dom-module id="sw-quotes">
@@ -135,8 +135,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                            on-iron-localstorage-load="dataLoaded"
         ></iron-localstorage>
 
-        <yahoo-finance-quote on-response="_handleQuoteResponse" id="quoteRequest" loading="{{loading}}"
-                             on-error="_handleError"></yahoo-finance-quote>
+        <finance-quote on-response="_handleQuoteResponse" id="quoteRequest" loading="{{loading}}"
+                             on-error="_handleError"></finance-quote>
 
         <paper-toast id="offlineNotification" duration="5000"
                      text="Unable to refresh data"></paper-toast>
@@ -186,7 +186,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 var symbol = e.detail.symbol;
                 // Validate that there are no duplicates
                 for (var i = 0; i < quotesView.stocks.length; i++) {
-                    if(quotesView.stocks[i].symbol.toUpperCase() == symbol.toUpperCase()) {
+                    if (quotesView.stocks[i].symbol.toUpperCase() == symbol.toUpperCase()) {
                         quotesView._removeDialog();
                         return;
                     }
@@ -248,22 +248,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             },
 
             _handleQuoteResponse: function (event) {
-                var quotes = event.detail.list.resources;
-                for (var i = 0; i < quotes.length; i++) {
-                    var quote = quotes[i].resource.fields;
+                var quote = event.detail;
 
-                    function isName(element) {
-                        return quote.symbol == element.symbol.toUpperCase();
-                    }
-
-                    var element = quotesView.stocks.find(isName);
-                    element.symbol = quote.symbol;
-                    element.name = quote.name;
-                    element.value = parseFloat(quote.price).toFixed(2);
-                    element.change = parseFloat(quote.change).toFixed(2);
-                    element.changePercent = parseFloat(quote.chg_percent).toFixed(2);
-                    element.lastUpdate = quote.utctime;
+                function isName(element) {
+                    return quote.symbol == element.symbol.toUpperCase();
                 }
+
+                var element = quotesView.stocks.find(isName);
+                element.symbol = quote.symbol;
+                element.name = quote.name;
+                element.value = parseFloat(quote.value).toFixed(2);
+                element.change = parseFloat(quote.change).toFixed(2);
+                element.changePercent = parseFloat(quote.changePercent).toFixed(2);
+                element.lastUpdate = quote.lastUpdate;
                 quotesView.$.stocksGrid.size = quotesView.stocks.length;
                 quotesView.$.stocksGrid.refreshItems();
                 quotesView.$.localStorage.save();
