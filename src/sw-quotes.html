@@ -18,6 +18,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="sw-add-stock-dialog.html">
+<link rel="import" href="sw-stock-details.html">
 <link rel="import" href="finance-quote.html">
 
 
@@ -174,9 +175,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 this.$.stocksGrid.addEventListener('selected-items-changed', function () {
                     var selectedIndex = quotesView.$.stocksGrid.selection.selected();
                     if (!isNaN(selectedIndex) && selectedIndex != '') {
-                        console.log(quotesView.$.stocksGrid.items[selectedIndex]);
-                        /* TODO open dialog */
-                        /*document.getElementById("stockDetails")) */
+                        quotesView.$.stocksGrid.selection.deselect(selectedIndex);
+                        quotesView._showDetailsDialog(quotesView.$.stocksGrid.items[selectedIndex]);
                     }
                 });
 
@@ -188,6 +188,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 dialog.setAttribute("id", "add-stock-dialog");
                 dialog.addEventListener('symbol-added', this._symbolAdded);
                 dialog.addEventListener('dialog-cancelled', this._removeDialog);
+                document.querySelector("body").appendChild(dialog);
+            },
+
+            _showDetailsDialog: function(data) {
+                var dialog = document.createElement('sw-stock-details');
+                dialog.setAttribute("id", "stock-details");
+                dialog.data = data;
+
+                //dialog.addEventListener('symbol-added', this._symbolAdded);
+                //dialog.addEventListener('dialog-cancelled', this._removeDialog);
                 document.querySelector("body").appendChild(dialog);
             },
 
