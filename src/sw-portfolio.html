@@ -13,6 +13,7 @@
 <link rel="import" href="finance-quote.html">
 <link rel="import" href="yahoo-finance-history.html">
 <link rel="import" href="sw-portfolio-content.html">
+<link rel="import" href="sw-stock-details.html">
 
 <script src="portfolio.js"></script>
 <script src="portfolioFIFO.js"></script>
@@ -488,7 +489,27 @@
                     }
                 };
 
+                this.$.portfolioGrid.addEventListener('selected-items-changed', function () {
+                    var selectedIndex = portfolioView.$.portfolioGrid.selection.selected();
+                    if (!isNaN(selectedIndex) && selectedIndex != '') {
+                        portfolioView.$.portfolioGrid.selection.deselect(selectedIndex);
+                        portfolioView._showDetailsDialog(portfolioView.$.portfolioGrid.items[selectedIndex]);
+                    }
+                });
+
                 window.viewportUnitsBuggyfill.refresh();
+            },
+
+            _showDetailsDialog: function(data) {
+                var dialog = document.createElement('sw-stock-details');
+                dialog.setAttribute("id", "stock-details");
+                dialog.addEventListener('iron-overlay-closed', this._removeDetailsDialog);
+                dialog.data = data;
+                document.querySelector("body").appendChild(dialog);
+            },
+
+            _removeDetailsDialog: function() {
+                document.querySelector("body").removeChild(document.getElementById("stock-details"));
             },
 
             _parseStockHistoryData: function (event) {
@@ -633,6 +654,21 @@
                     allTimePercent = ((allTimePercent - 1) * 100).toFixed(2);
 
                     stock.allTimeChangePercent = allTimePercent;
+
+                    stock.daysLow = quote.daysLow;
+                    stock.daysHigh = quote.daysHigh;
+                    stock.yearLow = quote.yearLow;
+                    stock.yearHigh = quote.yearHigh;
+                    stock.open = quote.open;
+                    stock.volume = quote.volume;
+                    stock.avgDailyVolume = quote.avgDailyVolume;
+                    stock.marketCap = quote.marketCap;
+                    stock.peRatio = quote.peRatio;
+                    stock.dividendYield = quote.dividendYield;
+                    stock.dividendPerShare = quote.dividendPerShare;
+                    stock.exDividendDate = quote.exDividendDate;
+                    stock.dividendPayDate = quote.dividendPayDate;
+                    stock.afterHoursChange = quote.afterHoursChange;
 
                     this.portfolio.setClosePrice(quote.symbol, parseFloat(quote.price), closeTime.format("YYYY-MM-DD"));
 
