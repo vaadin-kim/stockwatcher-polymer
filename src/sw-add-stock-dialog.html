@@ -10,21 +10,40 @@
         <style>
             paper-dialog {
                 min-width: 280px;
-                padding: 0px 30px;
+                margin: 0px;
             }
 
             paper-dialog /deep/ input {
                 text-transform: uppercase;
             }
+
+            .header {
+                background-color: #0a589b;
+                margin: 0px !important;
+                padding: 18px !important;
+                color: #ffffff;
+            }
+
+            paper-input {
+                margin-top: 0px !important;
+                margin-bottom: 20px;
+            }
+
+            paper-button.primary {
+                background-color: #0a589b;
+                color: #ffffff;
+            }
         </style>
         <paper-dialog opened modal id="dialog">
-            <h2>Enter stock symbol</h2>
-            <paper-dialog-scrollable>
-                <paper-input label="E.g. AAPL or GOOGL" id="symbol" autocapitalize autofocus maxlength="12" minlength="1" pattern="[a-ZA-Z0-9]" required error-message="Invalid stock symbol"></paper-input>
-            </paper-dialog-scrollable>
+            <div class="header">
+                <h2>Enter stock symbol</h2>
+            </div>
+            <paper-input label="E.g. AAPL or GOOGL" id="symbol" autocapitalize autofocus maxlength="12"
+                         minlength="1" pattern="[a-ZA-Z0-9]" required
+                         error-message="Invalid stock symbol"></paper-input>
             <div class="buttons">
-                <paper-button on-tap="_cancelled">Cancel</paper-button>
-                <paper-button on-tap="_confirmed">Accept</paper-button>
+                <paper-button dialog-dismiss>Cancel</paper-button>
+                <paper-button class="primary" on-tap="_confirmed" raised>Accept</paper-button>
             </div>
         </paper-dialog>
     </template>
@@ -34,17 +53,13 @@
         Polymer({
             is: 'sw-add-stock-dialog',
 
-            _confirmed: function() {
-                if(this.$.symbol.validate()) {
+            _confirmed: function () {
+                if (this.$.symbol.validate()) {
                     var symbol = this.$.symbol.value.toUpperCase();
                     this.fire('symbol-added', {symbol: symbol});
                     this.$.dialog.close();
                 }
             },
-
-            _cancelled: function() {
-                this.fire('dialog-cancelled');
-            }
         });
     </script>
 

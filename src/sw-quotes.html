@@ -187,7 +187,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 var dialog = document.createElement('sw-add-stock-dialog');
                 dialog.setAttribute("id", "add-stock-dialog");
                 dialog.addEventListener('symbol-added', this._symbolAdded);
-                dialog.addEventListener('dialog-cancelled', this._removeDialog);
+                dialog.addEventListener('iron-overlay-closed', this._removeDialog);
                 document.querySelector("body").appendChild(dialog);
             },
 
