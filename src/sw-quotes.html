@@ -194,10 +194,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             _showDetailsDialog: function(data) {
                 var dialog = document.createElement('sw-stock-details');
                 dialog.setAttribute("id", "stock-details");
+                dialog.addEventListener('iron-overlay-closed', this._removeDetailsDialog);
                 dialog.data = data;
-
-                //dialog.addEventListener('symbol-added', this._symbolAdded);
-                //dialog.addEventListener('dialog-cancelled', this._removeDialog);
                 document.querySelector("body").appendChild(dialog);
             },
 
@@ -238,6 +236,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
             _removeDialog: function () {
                 document.querySelector("body").removeChild(document.getElementById("add-stock-dialog"));
+            },
+
+            _removeDetailsDialog: function() {
+                document.querySelector("body").removeChild(document.getElementById("stock-details"));
             },
 
             _toggleList: function () {
