@@ -136,7 +136,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         ></iron-localstorage>
 
         <finance-quote on-response="_handleQuoteResponse" id="quoteRequest" loading="{{loading}}"
-                             on-error="_handleError"></finance-quote>
+                       on-error="_handleError"></finance-quote>
 
         <paper-toast id="offlineNotification" duration="5000"
                      text="Unable to refresh data"></paper-toast>
@@ -171,9 +171,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     }
                 };
 
-                this.$.stocksGrid.addEventListener('selected-items-changed', function() {
+                this.$.stocksGrid.addEventListener('selected-items-changed', function () {
                     var selectedIndex = quotesView.$.stocksGrid.selection.selected();
-                    if(!isNaN(selectedIndex) && selectedIndex != '') {
+                    if (!isNaN(selectedIndex) && selectedIndex != '') {
                         console.log(quotesView.$.stocksGrid.items[selectedIndex]);
                         /* TODO open dialog */
                         /*document.getElementById("stockDetails")) */
@@ -257,19 +257,42 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             },
 
             _handleQuoteResponse: function (event) {
-                var quote = event.detail;
+                var quotes = event.detail;
 
-                function isName(element) {
-                    return quote.symbol == element.symbol.toUpperCase();
+                for (var i = 0; i < quotes.length; i++) {
+                    var quote = quotes[i];
+
+                    function isName(element) {
+                        return quote.symbol.toUpperCase() == element.symbol.toUpperCase();
+                    }
+
+                    var element = quotesView.stocks.find(isName);
+                    element.symbol = quote.symbol.toUpperCase();
+                    element.name = quote.name;
+                    element.value = parseFloat(quote.price).toFixed(2);
+                    if (quote.change == "N/A") {
+                        element.change = "0.00";
+                        element.changePercent = "0.00";
+                    } else {
+                        element.change = parseFloat(quote.change).toFixed(2);
+                        var changePercent = parseFloat(quote.price)/parseFloat(quote.open);
+                        element.changePercent = ((changePercent-1)*100).toFixed(2);
+                    }
+                    element.daysLow = quote.daysLow;
+                    element.daysHigh = quote.daysHigh;
+                    element.yearLow = quote.yearLow;
+                    element.yearHigh = quote.yearHigh;
+                    element.open = quote.open;
+                    element.volume = quote.volume;
+                    element.avgDailyVolume = quote.avgDailyVolume;
+                    element.marketCap = quote.marketCap;
+                    element.peRatio = quote.peRatio;
+                    element.dividendYield = quote.dividendYield;
+                    element.dividendPerShare = quote.dividendPerShare;
+                    element.exDividendDate = quote.exDividendDate;
+                    element.dividendPayDate = quote.dividendPayDate;
+                    element.afterHoursChange = quote.afterHoursChange;
                 }
-
-                var element = quotesView.stocks.find(isName);
-                element.symbol = quote.symbol;
-                element.name = quote.name;
-                element.value = parseFloat(quote.value).toFixed(2);
-                element.change = parseFloat(quote.change).toFixed(2);
-                element.changePercent = parseFloat(quote.changePercent).toFixed(2);
-                element.lastUpdate = quote.lastUpdate;
                 quotesView.$.stocksGrid.size = quotesView.stocks.length;
                 quotesView.$.stocksGrid.refreshItems();
                 quotesView.$.localStorage.save();
