@@ -735,7 +735,7 @@
                 var dialog = document.createElement('sw-portfolio-content');
                 dialog.tradeHistory = this.portfolioData.tradeHistory;
                 dialog.setAttribute("id", "portfolio-content-dialog");
-                dialog.addEventListener('close', this._dialogClosed);
+                dialog.addEventListener('iron-overlay-closed', this._dialogClosed);
                 dialog.addEventListener('transaction-updated', this._transactionUpdated);
                 document.querySelector("body").appendChild(dialog);
             },

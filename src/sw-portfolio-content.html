@@ -69,7 +69,7 @@
             .buttons paper-button.left {
                 position: absolute;
                 left: 0px;
-                bottom: 0px;
+                bottom: 8px;
             }
 
             vaadin-grid /deep/ .buy-transaction {
@@ -130,7 +130,7 @@
                 </vaadin-grid>
                 <div class="buttons">
                     <paper-button on-tap="_remove" class="left">Remove Selected</paper-button>
-                    <paper-button on-tap="_close">Close</paper-button>
+                    <paper-button dialog-dismiss>Close</paper-button>
                 </div>
             </div>
         </paper-dialog>
@@ -158,11 +158,6 @@
                         return "sell-transaction";
                     }
                 };
-            },
-
-            _close: function (event) {
-                this.fire('close', this);
-                event.stopPropagation();
             },
 
             _addTransaction: function () {
