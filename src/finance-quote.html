@@ -5,7 +5,7 @@
     <template>
         <iron-ajax
                 id="query"
-                url="https://jsonp.afeld.me/"
+                url="https://query.yahooapis.com/v1/public/yql"
                 handle-as="json"
                 on-response="_handleResponse"
                 debounce-duration="300"
@@ -27,7 +27,7 @@
             _handleResponse: function (event) {
                 if (event.type != "error") {
                     event.stopPropagation();
-                    var response = event.detail.response;
+                    var response = event.detail.response.query.results.json.json;
                     this.fire('response', response);
                 }
             },
@@ -36,7 +36,10 @@
             requestQuotes: function (symbols) {
                 var xhr = this.$.query;
                 if (xhr != undefined && symbols.length > 0) {
-                    xhr.params = {url: "http://kim.app.fi/stock/fetch?symbols=" + symbols.join(',')};
+                    xhr.params = {
+                        q: "select * from json where url=\"http://kim.app.fi/stock/fetch?symbols=" + symbols.join(',') + "\"",
+                        format: 'json'
+                    }
                     xhr.generateRequest();
                 }
             }
