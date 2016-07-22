@@ -100,7 +100,7 @@
             <div class="container">
                 <div class="form">
                     <two-way-toggle-button left="Buy" right="Sell" id="buyOrSell"></two-way-toggle-button>
-                    <vaadin-date-picker label="Date" id="txDate"></vaadin-date-picker>
+                    <vaadin-date-picker label="Date" id="txDate" on-iron-overlay-closed="_doNothing"></vaadin-date-picker>
                     <paper-input label="Symbol" maxlength="12" minlength="1" pattern="[a-ZA-Z0-9]" required
                                  error-message="Invalid stock symbol" id="symbol"></paper-input>
                     <paper-input label="Price" maxlength="6" minlength="1" pattern="[0-9]*\.?[0-9]+" required
@@ -147,6 +147,10 @@
                         []
                     }
                 }
+            },
+
+            _doNothing: function(event) {
+                event.stopPropagation();
             },
 
             ready: function () {
