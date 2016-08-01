@@ -173,10 +173,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 };
 
                 this.$.stocksGrid.addEventListener('selected-items-changed', function () {
-                    var selectedIndex = quotesView.$.stocksGrid.selection.selected();
-                    if (!isNaN(selectedIndex) && selectedIndex != '') {
-                        quotesView.$.stocksGrid.selection.deselect(selectedIndex);
-                        quotesView._showDetailsDialog(quotesView.$.stocksGrid.items[selectedIndex]);
+                    if (quotesView.$.stocksGrid.selection.mode == 'single') {
+                        var selectedIndex = quotesView.$.stocksGrid.selection.selected();
+                        if (!isNaN(selectedIndex) && selectedIndex != '') {
+                            quotesView.$.stocksGrid.selection.deselect(selectedIndex);
+                            quotesView._showDetailsDialog(quotesView.$.stocksGrid.items[selectedIndex]);
+                        }
                     }
                 });
 
