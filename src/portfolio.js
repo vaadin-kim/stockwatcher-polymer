@@ -86,8 +86,10 @@ Portfolio.prototype = {
         for (var i = 0; i < this.performance.length; i++) {
             var value = this.performance[i].portfolio.value();
             var cost = this.performance[i].portfolio.cost();
-            var relative = (100 * value / cost);
-            history.push(relative);
+            if(value > 0 && cost > 0) {
+                var relative = (100 * value / cost);
+                history.push(relative);
+            }
         }
         return history;
     },
