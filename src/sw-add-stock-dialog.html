@@ -43,7 +43,7 @@
                          minlength="1" pattern="[a-ZA-Z0-9]" required
                          error-message="Invalid stock symbol"></paper-input>
             <div class="buttons">
-                <paper-button dialog-dismiss>Cancel</paper-button>
+                <paper-button on-tap="_close">Cancel</paper-button>
                 <paper-button class="primary" on-tap="_confirmed" raised>Accept</paper-button>
             </div>
         </paper-dialog>
@@ -54,13 +54,19 @@
         Polymer({
             is: 'sw-add-stock-dialog',
 
-            _confirmed: function () {
+            _confirmed: function (event) {
                 if (this.$.symbol.validate()) {
+                    event.preventDefault();
                     var symbol = this.$.symbol.value.toUpperCase();
                     this.fire('symbol-added', {symbol: symbol});
                     this.$.dialog.close();
                 }
             },
+
+            _close: function (event) {
+                event.preventDefault();
+                this.$.dialog.close();
+            }
         });
     </script>
 
