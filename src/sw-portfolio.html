@@ -264,7 +264,6 @@
             #progress-today span, #progress-history span {
                 display: block;
                 position: relative;
-                top: 50%;
                 transform: translateY(-50%);
             }
 
@@ -640,8 +639,7 @@
 
                     if (closeTime.isSame(moment(), 'day')) {
                         stock.change = (parseFloat(quote.change) * stock.amount).toFixed(2);
-                        var changePercent = parseFloat(quote.price)/parseFloat(quote.open);
-                        stock.changePercent = ((changePercent-1)*100).toFixed(2);
+                        stock.changePercent = parseFloat(quote.changePercent).toFixed(2);
                         this._changeToday += (parseFloat(quote.change) * stock.amount);
                     } else {
                         stock.change = "0.00";

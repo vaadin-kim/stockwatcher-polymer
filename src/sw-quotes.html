@@ -289,8 +289,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                         element.changePercent = "0.00";
                     } else {
                         element.change = parseFloat(quote.change).toFixed(2);
-                        var changePercent = parseFloat(quote.price)/parseFloat(quote.open);
-                        element.changePercent = ((changePercent-1)*100).toFixed(2);
+                        element.changePercent = parseFloat(quote.changePercent).toFixed(2);
                     }
                     element.daysLow = quote.daysLow;
                     element.daysHigh = quote.daysHigh;
